@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(PtCat)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #设置一下静态库，动态库的各个文件的位置, CMAKE_CURRENT_LIST_DIR 可能会受到 .cmake 文件调用的影响，因为他也会获取 .cmake 文件所在的路径

@@ -2,32 +2,52 @@
 #include <tuple>
 #include "pthreadpool.h"
 #include <functional>
-#include <list>
 
 
-void printSum(int a, int b)
-{
-    std::cout << "pengmingxingzhenshuaia,wocao " << a  << std::endl;
-}
-
-void printSum1(int a, std::string b)
-{
-    std::cout << "pengmingxingzhenshuaia,wocao " << b  << std::endl;
-}
 
 int main()
 {
+    //pthreadpool
+    ptcat::PThreadPool pool;
+    //create thread pool and specify the number of thread
+    pool.CreateThreadPool(10);
+    //get run thread count
+    int num = pool.threads_run_count();
+    std::cout << "threads_run_count " << num << std::endl;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    //create task
+    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, std::string)>, std::string>>([](ptcat::ISEXIT is_exit, std::string str)
+    {
+        while(true)
+        {
+            if (is_exit())
+                break;
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::cout << str << std::endl;
+        }
+    }, "i miss you"));
 
+    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, int, std::string)>, int, std::string>>([](ptcat::ISEXIT is_exit, int num, std::string str)
+   {
+       while(true)
+       {
+           if (is_exit())
+               break;
+           std::this_thread::sleep_for(std::chrono::milliseconds(1));
+           std::cout << num << "  " << str << std::endl;
+       }
+   }, 100, "i miss you"));
 
-    ptcat::PTask<std::function<void(int, int)>, int, int> t(printSum, 10, 20);
-    t.Run();
-    std::list<std::shared_ptr<ptcat::Task>> tt;
-    tt.push_back(std::make_shared<ptcat::PTask<std::function<void(int, int)>, int, int>>(printSum, 50, 20));
-    tt.push_back(std::make_shared<ptcat::PTask<std::function<void(int, std::string)>, int, std::string>>(printSum1, 10, "wonima"));
-    tt.front()->Run();
-    tt.back()->Run();
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    num = pool.threads_run_count();
+    std::cout << "------------- threads_run_count " << num << std::endl;
 
-
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    pool.DestroyThreadPool();
+    while(true)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     return 0;
 }

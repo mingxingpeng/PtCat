@@ -37,13 +37,21 @@ void ptcat::PThreadPool::DestroyThreadPool()
     std::unique_lock<std::mutex> lock(thread_mux_);
     //先将所有线程池停止
     is_exit_ = true;
+    //通知所有线程
+    lock.unlock();
+    cv_.notify_all();
     //等待所有的线程运行结束
     for (auto& item : threads_)
     {
         if (item->joinable())
             item->join();
     }
+
+    lock.lock();
     //清除数组
+    //如果任务没清空，也情况
+    if (!tasks_.empty())
+        tasks_.clear();
     threads_.clear();
 }
 
@@ -68,9 +76,13 @@ void ptcat::PThreadPool::AddTask(const std::shared_ptr<Task>& task)
         throw std::runtime_error("the param is not nullptr");
     //创建锁之前进行检查
     std::unique_lock<std::mutex> lock(thread_mux_);
+    //如果线程池推出，则对应的死循环线程也应该推出
+    task->is_exit_ = [this]()
+    {
+        return is_exit();
+    };
     tasks_.push_back(task);
-
-    lock.lock();
+    lock.unlock();
     cv_.notify_one();//信号通知都一个线程进行处理，必须在解锁之后进行处理
 }
 
