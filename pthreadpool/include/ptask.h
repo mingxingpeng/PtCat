@@ -33,7 +33,7 @@ namespace ptcat//定义命名空间
      *定义任务类
      */
     template<typename Function, typename... Args>
-    requires std::is_invocable_v<Function, ISEXIT, Args...> /*requires std::is_convertible_v<std::invoke_result_t<Function, std::string, Args...>, void>; requires: C++20 新功能，这里的作用是确保函数第一个参数一定是指定类型函数指针*/
+    requires std::is_invocable_v<Function, ISEXIT, Args...> /*requires: C++20 新功能，这里的作用是确保函数第一个参数一定是指定类型函数指针*/
     class PTask : public Task
     {
     public:
@@ -50,7 +50,7 @@ namespace ptcat//定义命名空间
         void Run() override
         {
             /*调用apply 函数进行对元组进行解包以及调用该函数*/
-            auto tuple = std::tuple_cat(std::make_tuple(std::forward<ISEXIT>(is_exit_)), args_);
+            auto tuple = std::tuple_cat(std::make_tuple(std::forward<ISEXIT>(is_exit_)), std::forward<std::tuple<Args...>>(args_));
             std::apply(func_, std::move(tuple));
         }
     private:

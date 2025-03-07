@@ -33,12 +33,9 @@ void ptcat::PThreadPool::CreateThreadPool(const int& threads_size)
 //销毁线程池
 void ptcat::PThreadPool::DestroyThreadPool()
 {
-    //创建锁
-    std::unique_lock<std::mutex> lock(thread_mux_);
     //先将所有线程池停止
     is_exit_ = true;
     //通知所有线程
-    lock.unlock();
     cv_.notify_all();
     //等待所有的线程运行结束
     for (auto& item : threads_)
@@ -47,11 +44,10 @@ void ptcat::PThreadPool::DestroyThreadPool()
             item->join();
     }
 
-    lock.lock();
+    std::unique_lock<std::mutex> lock(thread_mux_);
     //清除数组
-    //如果任务没清空，也情况
-    if (!tasks_.empty())
-        tasks_.clear();
+    //如果任务没清空，也清空
+    tasks_.clear();
     threads_.clear();
 }
 
@@ -65,7 +61,7 @@ void ptcat::PThreadPool::AddThreads(const int&  thread_size)
     std::unique_lock<std::mutex> lock(thread_mux_);
     for (int i = 0; i < thread_size; i++)
     {
-        threads_.push_back(std::make_shared<std::thread>(&ptcat::PThreadPool::Run, this));
+        threads_.push_back(std::move(std::make_shared<std::thread>(&ptcat::PThreadPool::Run, this)));
     }
 }
 
@@ -98,7 +94,7 @@ std::shared_ptr<ptcat::Task> ptcat::PThreadPool::GetTask()
     //二次判断一下当前是否已经没有数据
     if (tasks_.empty())
         return nullptr;
-    auto task = tasks_.front();
+    auto task = std::move(tasks_.front());
     tasks_.pop_front();
     //上面都是智能指针，不需要手动释放
     return task;
