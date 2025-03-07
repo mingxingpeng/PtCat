@@ -17,6 +17,8 @@ void printSum1(int a, std::string b)
 
 int main()
 {
+
+
     ptcat::PTask<std::function<void(int, int)>, int, int> t(printSum, 10, 20);
     t.Run();
     std::list<std::shared_ptr<ptcat::Task>> tt;

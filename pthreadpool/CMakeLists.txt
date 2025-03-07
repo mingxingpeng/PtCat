@@ -63,7 +63,7 @@ aux_source_directory(${TPOOL_CPP_DIR} SOURCE_FILES)
 #message(STATUS "** HEARD_FILES : ${HEARD_FILES}")
 
 #创建一个缓存变量
-option(TPOOL_SHARED "create shared lib or static lib" ON)#注意这里如果是设置为了动态库，需要对应头文件加 dllexport, 否则生成不了 .lib 函数地址文件
+option(TPOOL_SHARED "create shared lib or static lib" OFF)#注意这里如果是设置为了动态库，需要对应头文件加 dllexport, 否则生成不了 .lib 函数地址文件
 #message(STATUS "** TPOOL_SHARED : ${TPOOL_SHARED}")
 
 #设置是生成动态库还是静态库 ON 是生成动态库， OFF 是生成静态库
@@ -74,7 +74,7 @@ add_library(${PROJECT_NAME} ${SOURCE_FILES}
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
 if (NOT TPOOL_SHARED)
     #这里写在下面是因为想指定对应传宏的目标，我这里只针对当前库以及其依赖者 add_definitions 也可以，但是其是全局的，比较老
-    add_compile_definitions(${PROJECT_NAME} PUBLIC "STATIC_LIB")
+    target_compile_definitions(${PROJECT_NAME} PUBLIC "STATIC_LIB")
 endif ()
 
 #[[
