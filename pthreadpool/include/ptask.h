@@ -33,11 +33,15 @@ namespace ptcat//定义命名空间
      *定义任务类
      */
     template<typename Function, typename... Args>
-    requires std::is_invocable_v<Function, ISEXIT, Args...> /*requires: C++20 新功能，这里的作用是确保函数第一个参数一定是指定类型函数指针*/
+    //requires std::is_invocable_v<Function, ISEXIT, Args...> /*requires: C++20 新功能，这里的作用是确保函数第一个参数一定是指定类型函数指针*/
     class PTask : public Task
     {
     public:
-
+        //使用 C++ 17 来代替 C++ 20 的功能，不使用 C++20,下面功能是用于限制当前模板类中函数的第一个函数只能是 ISEXIT 类型
+        template <typename F, typename... A>
+        using is_invocable = typename std::is_invocable<F, ISEXIT, A...>::type;
+        // 使用静态断言确保函数可调用
+        static_assert(is_invocable<Function, Args...>::value, "the first parameter of the function must be of type ISEXIT.");
 
         /*使用列表表达式的方式成员变量赋值， std::tuple<Args...> args_ 获取参数包中的参数使用 std::make_tuple(std::forward<Args>(args)...) 方式获取*/
         PTask(Function&& func, Args&&... args) : func_(std::forward<Function>(func)), args_(std::make_tuple(std::forward<Args>(args)...))

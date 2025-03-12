@@ -43,36 +43,14 @@
 cmake_minimum_required(VERSION 3.28)
 project(PThreadPool)
 
-#message(STATUS "** pthreadpool project name : ${PROJECT_NAME}")#指定下等级，--log-level=VERBOSE 可以看到
-
-
-#设置当前源文件地址
-set(TPOOL_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-#message(STATUS "** TPOOL_CPP_DIR : ${TPOOL_CPP_DIR}")
-
-#尝试获取下头文件地址
-#message(STATUS "** TPOOL_H_DIR : ${TPOOL_H_DIR}")
-
-#include_directories(TPOOL_H_DIR)#头文件引用带有全局性质，如果其含有子类，可能会有问题，使用下面的 target_include_directories来为当前 cmake 和其依赖者设置头文件路径
-#获取到某一个路径下的所有源文件
-aux_source_directory(${TPOOL_CPP_DIR} SOURCE_FILES)
-#message(STATUS "** SOURCE_FILES : ${SOURCE_FILES}")
-
 #获取到对应路径下的所有的头文件
 #file(GLOB HEARD_FILES "${TPOOL_H_DIR}/*.h*")
 #message(STATUS "** HEARD_FILES : ${HEARD_FILES}")
 
-#创建一个缓存变量
-option(TPOOL_SHARED "create shared lib or static lib" ON)#注意这里如果是设置为了动态库，需要对应头文件加 dllexport, 否则生成不了 .lib 函数地址文件
-#message(STATUS "** TPOOL_SHARED : ${TPOOL_SHARED}")
-
-#设置是生成动态库还是静态库 ON 是生成动态库， OFF 是生成静态库
-set(BUILD_SHARED_LIBS ${TPOOL_SHARED})
-add_library(${PROJECT_NAME} ${SOURCE_FILES}
-        include/ptask.h)#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
+add_library(${PROJECT_NAME} ${TPOOL_CPP_FILES})#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
 
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
-if (NOT TPOOL_SHARED)
+if (NOT LIB_SHARED)
     #这里写在下面是因为想指定对应传宏的目标，我这里只针对当前库以及其依赖者 add_definitions 也可以，但是其是全局的，比较老
     target_compile_definitions(${PROJECT_NAME} PUBLIC "STATIC_LIB")
 endif ()
