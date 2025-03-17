@@ -58,6 +58,8 @@ C++ 17 新知识点
 #include <mutex>
 #include <list>
 #include "ptask.h"
+#include <memory>
+#include <condition_variable>
 
 /*
 线程池，包含功能
@@ -72,10 +74,13 @@ C++ 17 新知识点
 
 namespace ptcat//定义命名空间
 {
-    class DLL_API PThreadPool {
+    class DLL_API PThreadPool final {
     public:
         PThreadPool();
         ~PThreadPool();
+
+        PThreadPool(const PThreadPool& p) = delete;
+        PThreadPool& operator=(const PThreadPool&& p) = delete;
 
         //创建线程池
         void CreateThreadPool(const int& threads_size);

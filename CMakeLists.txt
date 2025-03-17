@@ -21,10 +21,10 @@ message(STATUS "PtCat VERSION ${PTCAT_VERSION}")
 #**********************************************
 #设置默认编译状态为 Release 状态
 #**********************************************
-if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)#如果没有给 CMAKE_BUILD_TYPE 赋值，或者没有设置多配置生成器 设置 CMAKE_BUILD_TYPE 为 Release 模式
-    message(STATUS "Release")
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose Release or Debug" FORCE)
-endif()
+#if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)#如果没有给 CMAKE_BUILD_TYPE 赋值，或者没有设置多配置生成器 设置 CMAKE_BUILD_TYPE 为 Release 模式
+#    message(STATUS "Release")
+#    set(CMAKE_BUILD_TYPE "Release" CACHE STRING  "Choose Release or Debug" FORCE)
+#endif()
 
 #**********************************************
 #设置是否使用编译器扩展功能
@@ -100,6 +100,8 @@ set(LIB_PROJECT_NAMES ${PROJECT_NAME})#默认当前库
 #**********************************************
 #是否生成所有库还是只生成对应库
 #**********************************************
+
+
 if (PTCAT_ALL_LIBRARY)
     add_library(${PROJECT_NAME} ${CPP_FILES})
     #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库

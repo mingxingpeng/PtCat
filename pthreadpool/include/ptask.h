@@ -20,13 +20,13 @@ namespace ptcat//定义命名空间
     {
     public:
         ISEXIT is_exit_ = nullptr;//设置是否推出
+        virtual void Run() = 0;
 
+    protected:
         Task() = default;
 
         //设置为虚析构，防止为父类传递子类对象，然后调用父类调用函数析构时不调用子类析构函数
         virtual ~Task()= default;
-
-        virtual void Run() = 0;
     };
 
     /*
@@ -34,7 +34,7 @@ namespace ptcat//定义命名空间
      */
     template<typename Function, typename... Args>
     //requires std::is_invocable_v<Function, ISEXIT, Args...> /*requires: C++20 新功能，这里的作用是确保函数第一个参数一定是指定类型函数指针*/
-    class PTask : public Task
+    class PTask final : public Task
     {
     public:
         //使用 C++ 17 来代替 C++ 20 的功能，不使用 C++20,下面功能是用于限制当前模板类中函数的第一个函数只能是 ISEXIT 类型
