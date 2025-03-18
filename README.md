@@ -45,41 +45,68 @@
 
 ②构造函数第一个参数被强制要求为 std::function<bool()> 类型，用于联动 PThreadPool 线程池中 is_exit() 函数，如果该任务是一个死循环任务，可以帮助设置死循环任务停止
 
+③任务类帮助函数
+
+    template<typename Function, typename... Args>
+    auto make_task(Function&& func, Args&&... args)
+   用于构建任务类共享智能指针
+
+       auto task = ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
+       {
+           while(true)
+           {
+                if (is_exit())//如果是死循环函数必须加上，当线程池推出时，该函数帮助推出死循环
+                    break;
+                ...
+           }
+       }, "i miss you");
 ### 示例：
 
-    ptcat::PThreadPool pool;
+    //pthreadpool
+    ptcat::threadpool::PThreadPool pool;
     //create thread pool and specify the number of thread
     pool.CreateThreadPool(10);
     //get run thread count
     int num = pool.threads_run_count();
     std::cout << "threads_run_count " << num << std::endl;
-
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     //create task
-    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, std::string)>, std::string>>([](ptcat::ISEXIT is_exit, std::string str)
-    {
-        while(true)
-        {
-            if (is_exit())
-            break;
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            std::cout << str << std::endl;
-        }
-    }, "i miss you"));
-
-    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, int, std::string)>, int, std::string>>([](ptcat::ISEXIT is_exit, int num, std::string str)
+    pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
     {
         while(true)
         {
             if (is_exit())
                 break;
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            std::cout << num << "  " << str << std::endl;
+            std::cout << str << std::endl;
         }
+    }, "i miss you"));
+
+    pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
+    {
+    while(true)
+    {
+    if (is_exit())
+    break;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::cout << num << "  " << str << std::endl;
+    }
     }, 100, "i miss you"));
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     num = pool.threads_run_count();
     std::cout << "------------- threads_run_count " << num << std::endl;
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-    pool.DestroyThreadPool();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //pool.DestroyThreadPool();
+    while(true)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
+        {
+
+               //std::this_thread::sleep_for(std::chrono::milliseconds(num));
+               std::cout << num << "  " << str << std::endl;
+        }, 10, "i test you,you just want to add it -------------------------------------"));
+
+    }

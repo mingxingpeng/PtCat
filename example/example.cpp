@@ -10,6 +10,7 @@ void TestPLogWriter();
 
 int main()
 {
+
     TestPLogWriter();
     TestPthreadPool();
 
@@ -19,7 +20,7 @@ int main()
 void TestPthreadPool()
 {
     //pthreadpool
-    ptcat::PThreadPool pool;
+    ptcat::threadpool::PThreadPool pool;
     //create thread pool and specify the number of thread
     pool.CreateThreadPool(10);
     //get run thread count
@@ -27,7 +28,7 @@ void TestPthreadPool()
     std::cout << "threads_run_count " << num << std::endl;
     // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     //create task
-    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, std::string)>, std::string>>([](ptcat::ISEXIT is_exit, std::string str)
+    pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
     {
         while(true)
         {
@@ -38,7 +39,7 @@ void TestPthreadPool()
         }
     }, "i miss you"));
 
-    pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, int, std::string)>, int, std::string>>([](ptcat::ISEXIT is_exit, int num, std::string str)
+    pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
    {
        while(true)
        {
@@ -54,16 +55,16 @@ void TestPthreadPool()
     std::cout << "------------- threads_run_count " << num << std::endl;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    // pool.DestroyThreadPool();
+    //pool.DestroyThreadPool();
     while(true)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        pool.AddTask(std::make_shared<ptcat::PTask<std::function<void(ptcat::ISEXIT, int, std::string)>, int, std::string>>([](ptcat::ISEXIT is_exit, int num, std::string str)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
         {
 
-               std::this_thread::sleep_for(std::chrono::milliseconds(num));
+               //std::this_thread::sleep_for(std::chrono::milliseconds(num));
                std::cout << num << "  " << str << std::endl;
-        }, 100, "i test you,you just want to add it"));
+        }, 10, "i test you,you just want to add it -------------------------------------"));
 
     }
     std::cout << "hello world " << std::endl;

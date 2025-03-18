@@ -74,54 +74,59 @@ C++ 17 新知识点
 
 namespace ptcat//定义命名空间
 {
-    class DLL_API PThreadPool final {
-    public:
-        PThreadPool();
-        ~PThreadPool();
+    namespace threadpool
+    {
+        class DLL_API PThreadPool final {
+        public:
+            PThreadPool();
+            ~PThreadPool();
 
-        PThreadPool(const PThreadPool& p) = delete;
-        PThreadPool& operator=(const PThreadPool&& p) = delete;
+            PThreadPool(const PThreadPool& p) = delete;
+            PThreadPool(const PThreadPool&& p) = delete;
+            PThreadPool operator=(const PThreadPool& p) = delete;
+            PThreadPool& operator=(const PThreadPool&& p) = delete;
 
-        //创建线程池
-        void CreateThreadPool(const int& threads_size);
+            //创建线程池
+            void CreateThreadPool(const int& threads_size);
 
-        //销毁线程池
-        void DestroyThreadPool();
+            //销毁线程池
+            void DestroyThreadPool();
 
-        //线程池中添加线程
-        void AddThreads(const int&  thread_size);
+            //线程池中添加线程
+            void AddThreads(const int&  thread_size);
 
-        //添加任务
-        void AddTask(const std::shared_ptr<Task>& task);
+            //添加任务
+            void AddTask(const std::shared_ptr<task::Task>& task);
 
-        //返回正在运行的线程数量， 函数代码量比较小，直接 inline 函数
-        int threads_run_count() const
-        {
-            return threads_run_count_.load();
-        }
-        //判断是否退出
-        bool is_exit() const
-        {
-            return is_exit_;
-        }
-    private:
-        //用于存储线程
-        std::vector<std::shared_ptr<std::thread>> threads_;
-        //判断是否推出线程池
-        bool is_exit_;
-        //运行线程数量
-        std::atomic_int threads_run_count_;
-        //锁
-        std::mutex thread_mux_;
+            //返回正在运行的线程数量， 函数代码量比较小，直接 inline 函数
+            int threads_run_count() const
+            {
+                return threads_run_count_.load(std::memory_order_acquire);//确保内存屏障后续操作不会在内存屏障之前进行操作
+            }
+            //判断是否退出
+            bool is_exit() const
+            {
+                return is_exit_;
+            }
+        private:
+            //用于存储线程
+            std::vector<std::shared_ptr<std::thread>> threads_;
+            //判断是否推出线程池
+            bool is_exit_;
+            //运行线程数量
+            std::atomic_int threads_run_count_;
+            //锁
+            std::mutex thread_mux_;
 
-        std::list<std::shared_ptr<Task>> tasks_;//需要被放置在线程中处理的任务
+            std::list<std::shared_ptr<task::Task>> tasks_;//需要被放置在线程中处理的任务
 
-        std::condition_variable cv_;//条件变量
+            std::condition_variable cv_;//条件变量
 
-        void Run();//运行函数
+            void Run();//运行函数
 
-        std::shared_ptr<Task> GetTask();//获取到任务进行处理
-    };
+            std::shared_ptr<task::Task> GetTask();//获取到任务进行处理
+        };
+    }
 }
 
 #endif //PTHREADPOOL_H
