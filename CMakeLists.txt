@@ -74,14 +74,28 @@ string(APPEND CPP_FILES "" ${TPOOL_CPP_FILES})
 #日志库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-set(LOG_H_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/include")
+set(LOG_H_LOGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/logger/include")
+set(LOG_H_CARVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/carve/include")
 #设置线程池源文件地址
-set(LOG_CPP_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/src")
+set(LOG_CPP_LOGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/logger/src")
+set(LOG_CPP_CARVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/plogwriter/carve/src")
 #include_directories(TPOOL_H_DIR)#头文件引用带有全局性质，如果其含有子类，可能会有问题，使用下面的 target_include_directories来为当前 cmake 和其依赖者设置头文件路径
-#获取到线程池的所有源文件
-aux_source_directory(${LOG_CPP_DIR} LOG_CPP_FILES)
-string(APPEND H_DIRS ";" ${LOG_H_DIR})
+string(APPEND H_DIRS ";" ${LOG_H_LOGGER_DIR})
+string(APPEND H_DIRS ";" ${LOG_H_CARVE_DIR})
+
+set(LOG_H_DIR "")#定义 log 头文件传递给单独编译库
+string(APPEND LOG_H_DIR "" ${LOG_H_LOGGER_DIR})
+string(APPEND LOG_H_DIR ";" ${LOG_H_CARVE_DIR})
+
+#获取到日志的所有源文件
+set(LOG_CPPS "")#定义一个变量传递给 单独编译库
+aux_source_directory(${LOG_CPP_LOGGER_DIR} LOG_CPP_FILES)
 string(APPEND CPP_FILES ";" ${LOG_CPP_FILES})
+string(APPEND LOG_CPPS "" ${LOG_CPP_FILES})
+set(LOG_CPP_FILES "")#清空下 LOG_CPP_FILES 变量，突然发现 aux_source_directory 不会置空该变量，而是在后面添加
+aux_source_directory(${LOG_CPP_CARVE_DIR} LOG_CPP_FILES)
+string(APPEND CPP_FILES ";" ${LOG_CPP_FILES})
+string(APPEND LOG_CPPS ";" ${LOG_CPP_FILES})
 
 message("-- -- H_DIRS = ${H_DIRS}")
 message("-- -- CPP_FILES = ${CPP_FILES}")

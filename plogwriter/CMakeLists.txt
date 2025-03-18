@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.28)
 project(PLogWriter)
 
-add_library(${PROJECT_NAME} ${LOG_CPP_FILES})#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
+add_library(${PROJECT_NAME} ${LOG_CPPS})#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
 
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
 if (NOT LIB_SHARED)
