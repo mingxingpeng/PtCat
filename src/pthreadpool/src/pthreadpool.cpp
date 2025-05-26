@@ -3,6 +3,8 @@
 //
 #include "pthreadpool.h"
 #include <iostream>
+#include "common.h"
+
 namespace ptcat
 {
     namespace threadpool

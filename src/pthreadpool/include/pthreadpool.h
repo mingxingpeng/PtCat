@@ -33,7 +33,7 @@ C++ 17 新知识点
 #define PTHREADPOOL_H
 
 //针对 windows 下静态库动态库不一致需要这样操作
-#ifdef _WIN32
+/*#ifdef _WIN32
     #ifdef STATIC_LIB//对于 windows 静态库，也不需要指定
         #define DLL_API
     #else//对于 windows 动态库，如果是对应库文件，需要指定 __declspec(dllexport)，非库文件指定 __declspec(dllimport)
@@ -49,7 +49,7 @@ C++ 17 新知识点
     #endif
 #else//linux 不需要
     #define DLL_API
-#endif
+#endif*/
 
 
 #include <vector>
@@ -60,6 +60,7 @@ C++ 17 新知识点
 #include "ptask.h"
 #include <memory>
 #include <condition_variable>
+#include "common.h"
 
 /*
 线程池，包含功能

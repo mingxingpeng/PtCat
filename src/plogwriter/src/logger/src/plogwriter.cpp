@@ -5,6 +5,8 @@
 #include "plogwirter.h"
 #include <iostream>
 
+#include "pcarve.h"
+
 PLogWriter::PLogWriter()
 {
     std::cout << "PLogWriter" << std::endl;
