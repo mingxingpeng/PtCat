@@ -11,8 +11,11 @@
 #define COMMON_H
 #include <chrono>
 
-//针对 windows 下静态库动态库不一致需要这样操作
-#ifdef _WIN32
+
+//***************************************************
+//windows 静态库，动态库区分
+//***************************************************
+#ifdef _WIN32//针对 windows 下静态库动态库不一致需要这样操作
     #ifdef STATIC_LIB//对于 windows 静态库，也不需要指定
         #define DLL_API
     #else//对于 windows 动态库，如果是对应库文件，需要指定 __declspec(dllexport)，非库文件指定 __declspec(dllimport)
@@ -32,10 +35,18 @@
     #define DLL_API
 #endif
 
+namespace ptcat {
+    //***************************************************
+    //时钟定义
+    //***************************************************
+    typedef std::chrono::steady_clock PSteadyClock;//单调指针
+    typedef std::chrono::high_resolution_clock PHighClock;//高性能指针
 
-typedef std::chrono::steady_clock PSteadyClock;//单调指针
-typedef std::chrono::high_resolution_clock PHighClock;//高性能指针
+    //***************************************************
+    //类型定义
+    //***************************************************
+    typedef long long PLLONG;//长整形
+}
 
-typedef long long PLLONG;//长整形
 
 #endif //COMMON_H

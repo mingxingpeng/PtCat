@@ -78,7 +78,7 @@ set(PTCAT_CPP_TPOOL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/pthreadpool/src/pthre
 #将头文件与 cpp 文件添加至 PTCAT_H_ALL_DIRS 与 PTCAT_CPP_ALL_FILES 存储起来
 #第一行的数据不需要加上间隔符
 string(APPEND PTCAT_H_ALL_DIRS "" ${PTCAT_H_TPOOL_DIR})
-string(APPEND PTCAT_CPP_ALL_FILES "" ${PTCAT_CPP_TPOOL_FILES})
+list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 
 #**********************************************
 #日志库设置
@@ -93,16 +93,18 @@ set(PTCAT_CPP_LOG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter/src/logger/p
 #头文件汇总
 string(APPEND PTCAT_H_ALL_DIRS ";" ${PTCAT_H_LOG_LOGGER_DIR})
 string(APPEND PTCAT_H_ALL_DIRS ";" ${PTCAT_H_LOG_CARVE_DIR})
-string(APPEND PTCAT_CPP_ALL_FILES ";" ${PTCAT_CPP_LOG_FILES})
+list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_LOG_FILES})
 
 #**********************************************
 #时间库设置
 #**********************************************
-set(PTCAT_H_DATETIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/include")
+set(PTCAT_H_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/include")
 #set(PTCAT_CPP_DATETIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/src")
 #获取到所有在 PTCAT_CPP_DATETIME_DIR 中的 cpp 文件保存到变量 PTCAT_CPP_DATETIME_FILES 中
 #aux_source_directory(${PTCAT_CPP_DATETIME_DIR} PTCAT_CPP_DATETIME_FILES)
-set(PTCAT_CPP_DATETIME_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/src/pdatetime.cpp")
+set(PTCAT_CPP_CLOCK_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pstopwatch.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/chronograph.cpp")
 #将头文件与 cpp 文件汇总
 #[[
 string(APPEND PTCAT_CPP_ALL_FILES ";" ${PTCAT_CPP_DATETIME_FILES})
@@ -112,8 +114,8 @@ string(APPEND PTCAT_CPP_ALL_FILES ";" "E:/path/test.cpp" "E:/path/test1.cpp")
 string(APPEND PTCAT_CPP_ALL_FILES ";${PTCAT_CPP_DATETIME_FILES}")
 或者直接使用 list(APPEND)
 ]]
-string(APPEND PTCAT_H_ALL_DIRS ";" ${PTCAT_H_DATETIME_DIR})#这里就不改了，还是用 string
-string(APPEND PTCAT_CPP_ALL_FILES ";"  ${PTCAT_CPP_DATETIME_FILES})
+string(APPEND PTCAT_H_ALL_DIRS ";" ${PTCAT_H_CLOCK_DIR})#这里就不改了，还是用 string
+list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_CLOCK_FILES})
 
 #**********************************************
 #展示汇总的数据
@@ -157,8 +159,8 @@ else()
     endif ()
     #单独编译时间库
     if (PTCAT_DATETIME_LIBRARY)
-        add_subdirectory(src/pdatetime)
-        string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/pdatetime)
+        add_subdirectory(src/pclock)
+        string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/pclock)
     endif ()
 endif ()
 message("-- -- PTCAT_LIB_PROJECT_NAMES = ${PTCAT_LIB_PROJECT_NAMES}")

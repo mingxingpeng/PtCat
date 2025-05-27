@@ -24,63 +24,54 @@
 //     #define DLL_API
 // #endif
 
-#include "common.h"
+#include "chronograph.h"
+#include <string>
+#include <vector>
 
 namespace ptcat {
-    namespace datetime {
+    namespace clock {
+        struct LapInfo {
+            std::string name_;
+            PLLONG time_;//elapsed time
+
+            LapInfo(std::string name, PLLONG time) : name_(name), time_(time){}
+        };
+
         /// <summary>
         /// 用于计时当前程序大致使用了多少秒
         /// </summary>
-        class DLL_API StopWatch {
+        class DLL_API StopWatch : public ChronoGraph{
         private:
-            PLLONG use_time_;
+            std::vector<LapInfo> laps_;//lap times
 
-            PSteadyClock::time_point start_time_;//start time
-
-            bool is_runing_;
+            PLLONG CalcElapsed(std::string name = "");
 
         public:
             //这里推荐初始化列表使用花括号，更现代，因为对于容器类型数据会更友好， vector{1, 2, 3}
             StopWatch();
 
-            virtual ~StopWatch();
+            ~StopWatch();
 
-            //judgement whether is's currenr runing
-            bool get_is_runing() {
-                return is_runing_;
+            void Clear() {
+                laps_.clear();
             }
 
-            void Reset();//reset param
 
-            void Start();
+            void LapStart(std::string name = "total");//start time
 
-            void Stop();
+            void LapStop();//stop time
 
+            PLLONG MicroLapTime(std::string name = "total");
 
-            /// <summary>
-            /// get consum time, unit: nm
-            /// </summary>
-            /// <returns></returns>
-            PLLONG get_nan_use_time() const {
-                return use_time_;
-            }
+            PLLONG MilliLapTime(std::string name = "total");
 
-            /// <summary>
-            /// get consum time, unit: μm
-            /// </summary>
-            /// <returns></returns>
-            PLLONG get_micro_use_time()  const {
-                return use_time_ / 1000;
-            }
+            PLLONG LapTime(std::string name = "total");
 
-            /// <summary>
-            /// get consum time, unit: mm
-            /// </summary>
-            /// <returns></returns>
-            PLLONG get_milli_use_time()  const {
-                return use_time_ / 1000000;
-            }
+            PLLONG MicroTotalTime();//get total time
 
+            PLLONG MilliTotalTime();//get total time
+
+            PLLONG TotalTime();//get total time
         };
     }
 

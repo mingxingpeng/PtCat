@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.28)
-project(PDateTime)
+project(PClock)
 
 #获取到对应路径下的所有的头文件
 #file(GLOB HEARD_FILES "${PTCAT_H_TPOOL_DIR}/*.h*")
 #message(STATUS "** HEARD_FILES : ${HEARD_FILES}")
 
-add_library(${PROJECT_NAME} ${PTCAT_CPP_DATETIME_FILES})#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
+add_library(${PROJECT_NAME} ${PTCAT_CPP_CLOCK_FILES})#如果头文件和子文件不在一个文件夹中，设置头文件好像会出错，这里尽量别设置头文件
 
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
 if (NOT PTCAT_LIB_SHARED)
@@ -18,6 +18,6 @@ endif ()
         add_library 设置目标以及这个目标的依赖者，所以需要 target_include_directories 要写在 add_library 的后面
         同理 target_link_directories 也一样
 ]]
-target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_DATETIME_DIR} ${PTCAT_H_COMMON_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_CLOCK_DIR} ${PTCAT_H_COMMON_DIR})
 
 
