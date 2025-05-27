@@ -8,7 +8,7 @@
 namespace ptcat {
     namespace clock {
         //这里推荐初始化列表使用花括号，更现代，因为对于容器类型数据会更友好， vector{1, 2, 3}
-        ChronoGraph::ChronoGraph(): elapsed_time_{ 0 }, start_time_{}, is_running_{false} {}
+        ChronoGraph::ChronoGraph() : elapsed_time_{ 0 }, start_time_{}, is_running_{false} {}
 
         ChronoGraph::~ChronoGraph(){}
 

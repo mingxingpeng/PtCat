@@ -44,11 +44,11 @@ namespace ptcat {
         }
 
         PLLONG StopWatch::MilliLapTime(std::string name){
-            return std::chrono::duration<PLLONG, std::chrono::milliseconds>(CalcElapsed(name)).count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::microseconds(CalcElapsed(name))).count();
         }
 
         PLLONG StopWatch::LapTime(std::string name){
-            return std::chrono::duration<PLLONG, std::chrono::seconds>(CalcElapsed(name)).count();
+            return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::microseconds(CalcElapsed(name))).count();
         }
 
         PLLONG StopWatch::MicroTotalTime(){
@@ -56,11 +56,12 @@ namespace ptcat {
         }
 
         PLLONG StopWatch::MilliTotalTime(){
-            return std::chrono::duration<PLLONG, std::chrono::seconds>(CalcElapsed()).count();
+            return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::microseconds(CalcElapsed())).count();
         }
 
         PLLONG StopWatch::TotalTime(){
-            return std::chrono::duration<PLLONG, std::chrono::seconds>(CalcElapsed()).count();
+            return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::microseconds(CalcElapsed())).count();
         }
+
     }
 }

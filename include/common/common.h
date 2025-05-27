@@ -19,7 +19,7 @@
     #ifdef STATIC_LIB//对于 windows 静态库，也不需要指定
         #define DLL_API
     #else//对于 windows 动态库，如果是对应库文件，需要指定 __declspec(dllexport)，非库文件指定 __declspec(dllimport)
-        #ifdef PtCat_EXPORTS//调用 add_libraries 才会有这个 xxx_EXPORTS 这个宏生成,单个单个是生成 PThreadPool 这个库
+        #ifdef ptcat_EXPORTS//调用 add_libraries 才会有这个 xxx_EXPORTS 这个宏生成,单个单个是生成 PThreadPool 这个库
             #define DLL_API __declspec(dllexport)//windows 系统下对于动态库，需要指定 __declspec(dllexport)，不然会导致动态库 .lib 函数地址文件生成不了
         #elif PThreadPool_EXPORTS//线程池库
             #define DLL_API __declspec(dllexport)

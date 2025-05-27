@@ -20,7 +20,7 @@ output_dir()#设置文件生成位置
 #**********************************************
 #指定项目名称，项目版本，以及所使用的语言
 #**********************************************
-project(PtCat)
+project(ptcat)
 message(STATUS "PtCat VERSION ${PTCAT_VERSION}")
 
 #**********************************************
@@ -42,7 +42,7 @@ endif ()
 #**********************************************
 #是否调用 PtCat 库测试
 #**********************************************
-option(PTCAT_RUN_EXAMPLE "run the example" OFF)
+option(PTCAT_RUN_EXAMPLE "run the example" ON)
 
 #**********************************************
 #是否只生成对应的库还是生成总库
@@ -62,13 +62,13 @@ set(PTCAT_CPP_ALL_FILES "")#所有涉及到的的 cpp 文件
 #**********************************************
 #公共库地址
 #**********************************************
-set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
 
 #**********************************************
 #线程池库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-set(PTCAT_H_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pthreadpool/include")
+set(PTCAT_H_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/pthreadpool")
 #设置线程池源文件地址
 #set(PTCAT_CPP_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pthreadpool/src")
 #include_directories(PTCAT_H_TPOOL_DIR)#头文件引用带有全局性质，如果其含有子类，可能会有问题，使用下面的 target_include_directories来为当前 cmake 和其依赖者设置头文件路径
@@ -84,8 +84,8 @@ list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 #日志库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-set(PTCAT_H_LOG_LOGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter/include/logger")
-set(PTCAT_H_LOG_CARVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter/include/carve")
+set(PTCAT_H_LOG_LOGGER_DIR "include/plogwriter/logger")
+set(PTCAT_H_LOG_CARVE_DIR "include/plogwriter/carve")
 #设置日志源文件地址
 #set(PTCAT_CPP_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter/logger/src")
 #aux_source_directory(${PTCAT_CPP_LOG_DIR} PTCAT_CPP_LOG_FILES)#获取到日志源文件
@@ -98,7 +98,7 @@ list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_LOG_FILES})
 #**********************************************
 #时间库设置
 #**********************************************
-set(PTCAT_H_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/include")
+set(PTCAT_H_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/pclock")
 #set(PTCAT_CPP_DATETIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/src")
 #获取到所有在 PTCAT_CPP_DATETIME_DIR 中的 cpp 文件保存到变量 PTCAT_CPP_DATETIME_FILES 中
 #aux_source_directory(${PTCAT_CPP_DATETIME_DIR} PTCAT_CPP_DATETIME_FILES)

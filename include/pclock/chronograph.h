@@ -11,7 +11,7 @@ namespace ptcat {
     namespace clock {
 
         //
-        class ChronoGraph {
+        class DLL_API ChronoGraph {
         protected:
             PLLONG elapsed_time_;//single timing
             bool is_running_;//current status of running
@@ -46,7 +46,7 @@ namespace ptcat {
             /// </summary>
             /// <returns></returns>
             PLLONG MilliElapsedTime()  const {
-                return std::chrono::duration<PLLONG, std::chrono::milliseconds>(elapsed_time_).count();
+                return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::microseconds(elapsed_time_)).count();
             }
 
             /// <summary>
@@ -54,7 +54,7 @@ namespace ptcat {
             /// </summary>
             /// <returns></returns>
             PLLONG ElapsedTime()  const {
-                return std::chrono::duration<PLLONG, std::chrono::seconds>(elapsed_time_).count();
+                return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::microseconds(elapsed_time_)).count();;
             }
         };
     }
