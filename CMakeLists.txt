@@ -51,7 +51,7 @@ option(PTCAT_GENERATE_ALL_LIBRARY "build all libraries" ON)
 #如果不生成总库，对应库生成
 option(PTCAT_THREADPOOL_LIBRARY "build pthreadpool libraries" ON)#线程池库
 option(PTCAT_LOGWRITER_LIBRARY "build plogwriter libraries" ON)#日志库
-option(PTCAT_DATETIME_LIBRARY "build pdatetime libraries" ON)#时间库
+option(PTCAT_CLOCK_LIBRARY "build pclock libraries" ON)#时间库
 
 #**********************************************
 #头文件和源文件集合
@@ -62,13 +62,13 @@ set(PTCAT_CPP_ALL_FILES "")#所有涉及到的的 cpp 文件
 #**********************************************
 #公共库地址
 #**********************************************
-set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/common")
+set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #**********************************************
 #线程池库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-set(PTCAT_H_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/pthreadpool")
+set(PTCAT_H_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 #设置线程池源文件地址
 #set(PTCAT_CPP_TPOOL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pthreadpool/src")
 #include_directories(PTCAT_H_TPOOL_DIR)#头文件引用带有全局性质，如果其含有子类，可能会有问题，使用下面的 target_include_directories来为当前 cmake 和其依赖者设置头文件路径
@@ -84,8 +84,8 @@ list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 #日志库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-set(PTCAT_H_LOG_LOGGER_DIR "include/plogwriter/logger")
-set(PTCAT_H_LOG_CARVE_DIR "include/plogwriter/carve")
+set(PTCAT_H_LOG_LOGGER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(PTCAT_H_LOG_CARVE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 #设置日志源文件地址
 #set(PTCAT_CPP_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter/logger/src")
 #aux_source_directory(${PTCAT_CPP_LOG_DIR} PTCAT_CPP_LOG_FILES)#获取到日志源文件
@@ -98,7 +98,7 @@ list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_LOG_FILES})
 #**********************************************
 #时间库设置
 #**********************************************
-set(PTCAT_H_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/pclock")
+set(PTCAT_H_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 #set(PTCAT_CPP_DATETIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/src")
 #获取到所有在 PTCAT_CPP_DATETIME_DIR 中的 cpp 文件保存到变量 PTCAT_CPP_DATETIME_FILES 中
 #aux_source_directory(${PTCAT_CPP_DATETIME_DIR} PTCAT_CPP_DATETIME_FILES)
@@ -145,6 +145,12 @@ if (PTCAT_GENERATE_ALL_LIBRARY)
         target_compile_definitions(${PROJECT_NAME} PRIVATE "STATIC_LIB")
     endif ()
     target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_ALL_DIRS} ${PTCAT_H_COMMON_DIR})
+
+    #设置库的属性
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+                            OUTPUT_NAME "ptcat"#设置库的输出名称
+                            DEBUG_POSTFIX "d"#如果是 Debug 版本，设置库的后缀
+    )
 else()
     set(PTCAT_LIB_PROJECT_NAMES "")
     #单独编译线程池库
@@ -158,7 +164,7 @@ else()
         string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/plogwriter)
     endif ()
     #单独编译时间库
-    if (PTCAT_DATETIME_LIBRARY)
+    if (PTCAT_CLOCK_LIBRARY)
         add_subdirectory(src/pclock)
         string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/pclock)
     endif ()

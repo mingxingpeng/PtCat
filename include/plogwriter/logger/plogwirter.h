@@ -24,7 +24,7 @@
     #define DLL_API
 #endif*/
 
-#include "common.h"
+#include "common/common.h"
 
 class DLL_API PLogWriter{
 public:

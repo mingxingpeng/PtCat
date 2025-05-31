@@ -5,7 +5,7 @@
 #ifndef CHRONOGRAPH_H
 #define CHRONOGRAPH_H
 
-#include "common.h"
+#include "common/common.h"
 
 namespace ptcat {
     namespace clock {

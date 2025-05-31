@@ -60,7 +60,7 @@ C++ 17 新知识点
 #include "ptask.h"
 #include <memory>
 #include <condition_variable>
-#include "common.h"
+#include "common/common.h"
 
 /*
 线程池，包含功能
@@ -109,6 +109,8 @@ namespace ptcat//定义命名空间
             {
                 return is_exit_;
             }
+
+            void WaitCurrentTask();//用于等待当前线程池中任务完成
         private:
             //用于存储线程
             std::vector<std::shared_ptr<std::thread>> threads_;
@@ -122,6 +124,10 @@ namespace ptcat//定义命名空间
             std::list<std::shared_ptr<task::Task>> tasks_;//需要被放置在线程中处理的任务
 
             std::condition_variable cv_;//条件变量
+
+            std::mutex wait_mux_;//用于等待任务全部完成
+
+            std::condition_variable wait_cv_;//用于通知任务全部完成
 
             void Run();//运行函数
 

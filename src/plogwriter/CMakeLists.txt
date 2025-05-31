@@ -10,3 +10,8 @@ if (NOT PTCAT_LIB_SHARED)
 endif ()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_LOG_LOGGER_DIR} ${PTCAT_H_LOG_CARVE_DIR} ${PTCAT_H_COMMON_DIR})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "plogwriter"#设置库的输出名称
+        DEBUG_POSTFIX "d"#如果是 Debug 版本，设置库的后缀
+)

@@ -62,4 +62,9 @@ endif ()
 ]]
 target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_TPOOL_DIR} ${PTCAT_H_COMMON_DIR})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES
+        OUTPUT_NAME "pthreadpool"#设置库的输出名称
+        DEBUG_POSTFIX "d"#如果是 Debug 版本，设置库的后缀
+)
+
 

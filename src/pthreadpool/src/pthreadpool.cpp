@@ -1,9 +1,9 @@
 //
 // Created by Administrator on 2025/3/4.
 //
-#include "pthreadpool.h"
+#include "pthreadpool/pthreadpool.h"
 #include <iostream>
-#include "common.h"
+#include "common/common.h"
 
 namespace ptcat
 {
@@ -39,6 +39,7 @@ namespace ptcat
             is_exit_ = true;
             //通知所有线程
             cv_.notify_all();
+            //wait_cv_.notify_all();
             //等待所有的线程运行结束
             for (auto& item : threads_)
             {
@@ -87,7 +88,6 @@ namespace ptcat
                 return is_exit();
             };
             tasks_.push_back(task);
-
             lock.unlock();
             cv_.notify_one();//信号通知都一个线程进行处理，必须在解锁之后进行处理
         }
@@ -121,7 +121,7 @@ namespace ptcat
                     //加一个 try_catch, 防止一个线程因为传进来的函数导致其他函数也被销毁
                     try
                     {
-                        threads_run_count_.fetch_add(1, std::memory_order_relaxed);//去除内存屏障，减少性能损失
+                        threads_run_count_.fetch_add(1);//去除内存屏障，减少性能损失
                         task->Run();
                     }catch (std::exception e)
                     {
@@ -129,8 +129,25 @@ namespace ptcat
                         break;
                     }
                 }
-                threads_run_count_.fetch_sub(1, std::memory_order_relaxed);
+                if (threads_run_count_.load() == 1) {//看是不是最后一个任务
+                    threads_run_count_.fetch_sub(1);
+                    //notice to stop waiting
+                    wait_cv_.notify_one();
+                }else {
+                    threads_run_count_.fetch_sub(1);
+                }
+
             }
+        }
+
+        //waiting for the current tasks to complete
+        void PThreadPool::WaitCurrentTask() {
+            std::unique_lock<std::mutex> lock(wait_mux_);
+            // wait_cv_.wait(lock, [&]() {
+            //     return threads_run_count_.load() == 0 || is_exit_;//Check if it returns true, return true and continue to execute downwards
+            // });
+            wait_cv_.wait(lock);//上面那种写法可能会被后面的谓词影响导致等待失败，wait 一开始为 true,比线程内 threads_run_count_++ 快就会导致这里等待不了直接往下走
+
         }
     }
 
