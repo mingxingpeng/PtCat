@@ -26,52 +26,77 @@
 
 #include "chronograph.h"
 #include <string>
-#include <vector>
+#include <map>
 
 namespace ptcat {
     namespace clock {
         struct LapInfo {
-            std::string name_;
-            PLLONG time_;//elapsed time
+        private:
+            bool is_running_;
+            PChrono::microseconds time_;//elapsed time
+            PSteadyClock::time_point time_points_;
+        public:
+            LapInfo() : is_running_{true}, time_{PChrono::microseconds(0)}, time_points_(PSteadyClock::now()){}
+            LapInfo(bool is_running, PChrono::microseconds time) : is_running_{is_running}, time_{time}, time_points_(PSteadyClock::now()){}
+            LapInfo(bool is_running, PChrono::microseconds time, PSteadyClock::time_point time_points) : is_running_{is_running}, time_{time}, time_points_(time_points){}
 
-            LapInfo(std::string name, PLLONG time) : name_(name), time_(time){}
+            const PSteadyClock::time_point& GetTimePoints() {
+                return this->time_points_;
+            }
+
+            void Reset() {
+                is_running_ = true;
+                time_points_ = PSteadyClock::now();
+            }
+
+            bool IsRunning(){return is_running_;}
+
+            void AddTime(PChrono::microseconds new_time) {
+                time_ += new_time;
+            }
+
+            const PChrono::microseconds& GetTime() {
+                return time_;
+            }
+
+            void SetIsRunning(bool is_running) {
+                is_running_ = is_running;
+            }
+
         };
+
+        typedef std::map<std::string, LapInfo> LapCollection;
+
+
 
         /// <summary>
         /// 用于计时当前程序大致使用了多少秒
         /// </summary>
-        class DLL_API StopWatch : public ChronoGraph{
+        class DLL_API StopWatch final : public ChronoGraph{
         private:
-            std::vector<LapInfo> laps_;//lap times
-
-            PLLONG CalcElapsed(std::string name = "");
-
+            LapCollection laps_;//lap times
         public:
             //这里推荐初始化列表使用花括号，更现代，因为对于容器类型数据会更友好， vector{1, 2, 3}
             StopWatch();
 
             ~StopWatch();
 
-            void Clear() {
-                laps_.clear();
-            }
+            StopWatch(const StopWatch& cg) = delete;
+            StopWatch(const StopWatch&& cg) = delete;
+            StopWatch operator=(const StopWatch&) = delete;
+            StopWatch& operator=(const StopWatch&&) = delete;
 
+            void Clear(std::string name = "");
 
-            void LapStart(std::string name = "total");//start time
+            void LapStart(const std::string& name);//start time
 
-            void LapStop();//stop time
+            void LapStop(const std::string& name);//stop time
 
-            PLLONG MicroLapTime(std::string name = "total");
+            PLLONG MicroLapTime(const std::string& name);
 
-            PLLONG MilliLapTime(std::string name = "total");
+            PLLONG MilliLapTime(const std::string& name);
 
-            PLLONG LapTime(std::string name = "total");
-
-            PLLONG MicroTotalTime();//get total time
-
-            PLLONG MilliTotalTime();//get total time
-
-            PLLONG TotalTime();//get total time
+            PLLONG LapTime(const std::string& name);
         };
     }
 

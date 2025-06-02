@@ -4,6 +4,7 @@
 #include "plogwriter/logger/plogwirter.h"
 #include <functional>
 #include "pclock/pstopwatch.h"
+#include "pclock/chronograph.h"
 
 void TestClock();
 void TestPthreadPool();
@@ -13,60 +14,63 @@ void TestPLogWriter();
 
 int main()
 {
-    // TestClock();
+    TestClock();
     // TestPLogWriter();
-    TestPthreadPool();
+    // TestPthreadPool();
 
     return 0;
 }
 
 void TestClock(){
-    ptcat::clock::StopWatch sw;
-    sw.Start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-    sw.Stop();
-    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
-    std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
-    std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
-
-    sw.Start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    sw.Stop();
-    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
-    std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
-    std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
-
-    //calc total desplay
-    sw.LapStart();
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    sw.LapStop();
-    sw.LapStart();
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    sw.LapStop();
-    sw.LapStart();
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    sw.LapStop();
-    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
-    std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
-    std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
-    std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
-    std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
-    std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    sw.LapStart("1");
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    sw.LapStop();
-    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
-    std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
-    std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
-    std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
-    std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
-    std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    std::cout << "LAPMicroElapsedTime = " << sw.MicroTotalTime() << " μs" << std::endl;
-    std::cout << "LAPMilliElapsedTime = " << sw.MilliTotalTime() << " ms" << std::endl;
-    std::cout << "LAPElapsedTime = " << sw.TotalTime() << " s" << std::endl;
-    sw.LapStart("fft");
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    sw.LapStop();
+    ptcat::clock::ChronoGraph cg;
+    cg.Start();
+    cg.Start();
+    // ptcat::clock::StopWatch sw;
+    // sw.Start();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    // sw.Stop();
+    // std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    // std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
+    // std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
+    //
+    // sw.Start();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    // sw.Stop();
+    // std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    // std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
+    // std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
+    //
+    // //calc total desplay
+    // sw.LapStart();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // sw.LapStop();
+    // sw.LapStart();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // sw.LapStop();
+    // sw.LapStart();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // sw.LapStop();
+    // std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
+    // std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
+    // std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
+    // std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    // std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
+    // std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
+    // sw.LapStart("1");
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // sw.LapStop();
+    // std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
+    // std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
+    // std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
+    // std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    // std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
+    // std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
+    // std::cout << "LAPMicroElapsedTime = " << sw.MicroTotalTime() << " μs" << std::endl;
+    // std::cout << "LAPMilliElapsedTime = " << sw.MilliTotalTime() << " ms" << std::endl;
+    // std::cout << "LAPElapsedTime = " << sw.TotalTime() << " s" << std::endl;
+    // sw.LapStart("fft");
+    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    // sw.LapStop();
 }
 
 void TestPthreadPool()
