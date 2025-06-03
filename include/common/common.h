@@ -40,8 +40,9 @@ namespace ptcat {
     //时钟定义
     //***************************************************
     namespace PChrono = std::chrono;
-    typedef PChrono::steady_clock PSteadyClock;//单调指针
-    typedef PChrono::high_resolution_clock PHighClock;//高性能指针
+    typedef PChrono::steady_clock PSteadyClock;//单调时钟
+    typedef PChrono::high_resolution_clock PHighClock;//高性能时钟
+    typedef PChrono::system_clock PSystemClock;//系统时钟
 
     //***************************************************
     //类型定义

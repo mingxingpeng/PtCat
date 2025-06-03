@@ -116,9 +116,64 @@ Console.WriteLine($"Duration: {duration.TotalSeconds} seconds");
 DateTime 是 C# 中处理日期和时间的核心类，提供了丰富的属性和方法，可以满足大多数日期和时间相关的操作需求。通过合理使用这些功能，可以方便地进行日期和时间的计算、格式化和比较。
  *
  */
-class PDateTime {
 
-};
+#include "common/common.h"
+
+namespace ptcat {
+    namespace datetime {
+
+        class DLL_API PDateTime {
+        private:
+            int year_;
+            int month_;
+            double day_;
+            double hour_;
+            double minute_;
+            double second_;
+            double milli_second_;
+            double day_of_week_;
+            double day_of_year_;
+        public:
+            PDateTime();
+
+            PDateTime(const int year,
+                const int month,
+                const double day);
+            PDateTime(const int year,
+                const int month,
+                const double day,
+                const double hour,
+                const double minute,
+                const double second);
+            PDateTime(const int year,
+                const int month,
+                const double day,
+                const double hour,
+                const double minute,
+                const double second,
+                const double milli_second);
+
+            static PDateTime Now();
+
+            PDateTime& AddDays(double days);
+
+            PDateTime& AddHours(double hours);
+
+            PDateTime& AddMinutes(double minutes);
+
+            PDateTime& AddSeconds(double seconds);
+
+            PDateTime& AddMilliseconds(double milliseconds);
+
+            PDateTime& AddMonths(int months);
+
+            PDateTime& AddYears(int years);
+
+
+        };
+    }
+}
+
 
 
 

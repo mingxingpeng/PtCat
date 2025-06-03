@@ -4,7 +4,7 @@
 #include "plogwriter/logger/plogwirter.h"
 #include <functional>
 #include "pclock/pstopwatch.h"
-#include "pclock/chronograph.h"
+#include "pclock/pchronograph.h"
 
 void TestClock();
 void TestPthreadPool();
@@ -22,56 +22,61 @@ int main()
 }
 
 void TestClock(){
-    ptcat::clock::ChronoGraph cg;
-    cg.Start();
-    cg.Start();
-    // ptcat::clock::StopWatch sw;
-    // sw.Start();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-    // sw.Stop();
-    // std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
-    // std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
-    // std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
-    //
-    // sw.Start();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-    // sw.Stop();
-    // std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
-    // std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
-    // std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
-    //
-    // //calc total desplay
-    // sw.LapStart();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    // sw.LapStop();
-    // sw.LapStart();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    // sw.LapStop();
-    // sw.LapStart();
-    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    // sw.LapStop();
-    // std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
-    // std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
-    // std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
-    // std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
-    // std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
-    // std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    // sw.LapStart("1");
-    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    // sw.LapStop();
-    // std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime() << " μs" << std::endl;
-    // std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime() << " ms" << std::endl;
-    // std::cout << "LAPElapsedTime = " << sw.LapTime() << " s" << std::endl;
-    // std::cout << "1 LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
-    // std::cout << "1 LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
-    // std::cout << "1 LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    // std::cout << "LAPMicroElapsedTime = " << sw.MicroTotalTime() << " μs" << std::endl;
-    // std::cout << "LAPMilliElapsedTime = " << sw.MilliTotalTime() << " ms" << std::endl;
-    // std::cout << "LAPElapsedTime = " << sw.TotalTime() << " s" << std::endl;
-    // sw.LapStart("fft");
-    // std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    // sw.LapStop();
+    ptcat::clock::StopWatch sw;
+    sw.Start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10000));
+    sw.Stop();
+    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
+    std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
+
+    sw.Start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    sw.Stop();
+    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
+    std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
+
+    //calc total desplay
+    sw.LapStart("1");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    sw.LapStop("1");
+    sw.LapStart("1");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    sw.LapStop("1");
+    sw.LapStart("1");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    sw.LapStop("1");
+    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
+    std::cout << "LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
+    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " μs" << std::endl;
+    std::cout << "2 LAPMilliElapsedTime = " << sw.MilliLapTime("2") << " ms" << std::endl;
+    std::cout << "2 LAPElapsedTime = " << sw.LapTime("2") << " s" << std::endl;
+    sw.LapStart("2");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    sw.LapStop("2");
+    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
+    std::cout << "LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
+    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " μs" << std::endl;
+    std::cout << "2 LAPMilliElapsedTime = " << sw.MilliLapTime("2") << " ms" << std::endl;
+    std::cout << "2 LAPElapsedTime = " << sw.LapTime("2") << " s" << std::endl;
+
+    sw.LapStart("3");
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    sw.LapStart("4");
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    sw.LapStop("4");
+    sw.LapStop("3");
+    std::cout << "3 LAPMicroElapsedTime = " << sw.MicroLapTime("3") << " μs" << std::endl;
+    std::cout << "3 LAPMilliElapsedTime = " << sw.MilliLapTime("3") << " ms" << std::endl;
+    std::cout << "3 LAPElapsedTime = " << sw.LapTime("3") << " s" << std::endl;
+    std::cout << "4 LAPMicroElapsedTime = " << sw.MicroLapTime("4") << " μs" << std::endl;
+    std::cout << "4 LAPMilliElapsedTime = " << sw.MilliLapTime("4") << " ms" << std::endl;
+    std::cout << "4 LAPElapsedTime = " << sw.LapTime("4") << " s" << std::endl;
 }
+
 
 void TestPthreadPool()
 {

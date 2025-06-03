@@ -24,7 +24,7 @@
 //     #define DLL_API
 // #endif
 
-#include "chronograph.h"
+#include "pchronograph.h"
 #include <string>
 #include <map>
 
