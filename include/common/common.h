@@ -48,6 +48,11 @@ namespace ptcat {
     //类型定义
     //***************************************************
     typedef long long PLLONG;//长整形
+
+    enum ResultErrorCode {
+        IndexNotFound = -99999,//索引未被发现
+        KeyNotFound,//键未被发现
+    };
 }
 
 

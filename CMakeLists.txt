@@ -107,7 +107,9 @@ set(PTCAT_H_PRIVATE_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/include")
 set(PTCAT_CPP_CLOCK_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pstopwatch.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pchronograph.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pdatetime.cpp")
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pdatetime.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/pdate.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pclock/src/ptime.cpp")
 #将头文件与 cpp 文件汇总
 #[[
 string(APPEND PTCAT_CPP_ALL_FILES ";" ${PTCAT_CPP_DATETIME_FILES})
