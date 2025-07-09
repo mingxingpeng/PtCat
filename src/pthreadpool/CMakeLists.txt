@@ -1,3 +1,49 @@
+cmake_minimum_required(VERSION 3.28)
+project(PThreadPool)
+
+#设置线程池源文件地址
+set(PTCAT_CPP_TPOOL_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/pthreadpool.cpp" PARENT_SCOPE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##[[
 #在 CLion 中，即使在 CMake 中正确指定了头文件路径，但对应的 `.cpp` 文件仍然报错找不到头文件，可能是由以下原因导致的：
 #### 1. **头文件路径未正确传递**
@@ -68,3 +114,4 @@
 #)
 #
 #
+

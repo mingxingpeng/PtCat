@@ -9,8 +9,6 @@
 
 namespace ptcat{
     namespace carve{
-
-
         class PCarveBase : public PCarve{
 
 

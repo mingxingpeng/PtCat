@@ -1,3 +1,44 @@
+
+cmake_minimum_required(VERSION 3.28)
+project(PLogWriter)
+
+set(PTCAT_H_PRIVATE_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
+set(PTCAT_CPP_LOG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/logger/plogwriter.cpp" PARENT_SCOPE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #cmake_minimum_required(VERSION 3.28)
 #project(PLogWriter)
 #
@@ -15,3 +56,4 @@
 #        OUTPUT_NAME "plogwriter"#设置库的输出名称
 #        DEBUG_POSTFIX "d"#如果是 Debug 版本，设置库的后缀
 #)
+

@@ -35,6 +35,7 @@ namespace ptcat {
                                             {10, 31},
                                             {11, 30},
                                             {12, 31}};
+    const double Epsilon = 1e-8;//表示double 类型小数部分被允许的误差范围，因为 double
 
     ///Determine whether it is a leap year
     inline bool IsLeapYear(const int& year) {
@@ -82,10 +83,38 @@ namespace ptcat {
     //
     // }
 
-    inline void AddDate(const DateTimeType& add_type, const double& add_count, int& year, int& month, double& day) {
+
+    //实现对时分秒的计算
+    inline void AddateTime(const DateTimeType& add_type, const double& add_count, double& year, double& month, double& day, double& hour, double& minute, double& second, double& milli_second) {
+        
+
+
+
+
+        if (add_type == DateTimeType::YEAR) {
+            year += add_count;
+            //判断一下是否有小数
+            double integer;
+            double decimal = std::modf(year, &integer);//std::modf 获取到小数以及整数
+            if (decimal > Epsilon) {//表示小数有值
+                double new_month = decimal* MaxMonthCount + month;
+                if (new_month > MaxMonthCount) {
+                    //计算出需要加上几年
+                    int add_year = new_month / MaxMonthCount;
+                    year += add_year;
+                    month = new_month - add_year * MaxMonthCount;
+                    decimal = std::modf(month, &integer);
+                    if (decimal > Epsilon) {
+
+                    }
+                }
+            }
+        }
+
+
         if(add_type == DateTimeType::DAY) {
+            int new_add_count = add_count;//向上取整
             if (add_count > 0) {
-                int new_add_count = std::ceil(add_count);//向上取整
                 while (true) {
                     int day_count = 0;
                     GetMonthCount(year, month, day_count);
@@ -101,10 +130,9 @@ namespace ptcat {
                     }
                 }
             }else {
-                int new_add_count = std::ceil(std::abs(add_count));//向上取整
                 while (true) {
-                    day -= new_add_count;
-                    if (day >= 1) break;
+                    day += new_add_count;
+                    if (day > 0) break;
                     new_add_count = std::abs(day);
                     if (month == MinMonthCount) {
                         month = MaxMonthCount;
@@ -117,6 +145,7 @@ namespace ptcat {
                     day = day_count;
                 }
             }
+            //
         }else if (add_type == DateTimeType::MONTH) {
             if (add_count > 0) {
                 int new_add_count = std::ceil(add_count);//向上取整
@@ -141,11 +170,6 @@ namespace ptcat {
         }else if (add_type == DateTimeType::YEAR) {
             year += add_count;
         }
-    }
-
-    //实现对时分秒的计算
-    inline void AddateTime(int& year, int& month, double& day, double& hour, double& minute, double& second, double& milli_second) {
-
     }
 
 }

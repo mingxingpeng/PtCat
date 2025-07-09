@@ -5,8 +5,8 @@ project(PtCat_examples)
 add_executable(${PROJECT_NAME} example.cpp)
 
 #关联下对应的头文件
-target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_ALL_DIRS})#之让其依赖项（例如：main.cpp） 可以获取到头文件
-message("PTCAT_H_ALL_DIRS = ${PTCAT_H_ALL_DIRS}")
+target_include_directories(${PROJECT_NAME} PUBLIC ${PTCAT_H_COMMON_DIR})#之让其依赖项（例如：main.cpp） 可以获取到头文件
+message("PTCAT_H_COMMON_DIR = ${PTCAT_H_COMMON_DIR}")
 #
 ##关联对应的库
 target_link_libraries(${PROJECT_NAME} PUBLIC ${PTCAT_LIB_PROJECT_NAMES})

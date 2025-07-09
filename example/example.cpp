@@ -1,5 +1,4 @@
 #include <iostream>
-#include <tuple>
 #include "pthreadpool/pthreadpool.h"
 #include "plogwriter/logger/plogwirter.h"
 #include <functional>
@@ -14,9 +13,9 @@ void TestPLogWriter();
 
 int main()
 {
-    TestClock();
+    // TestClock();
     // TestPLogWriter();
-    // TestPthreadPool();
+    TestPthreadPool();
 
     return 0;
 }
