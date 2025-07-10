@@ -69,9 +69,13 @@
 
 #include "common/common.h"
 
-class DLL_API PLogWriter{
-public:
-    PLogWriter();
-};
+namespace ptcat {
+    namespace plog {
+        class DLL_API PLogWriter{
+        public:
+            PLogWriter();
+        };
+    }
+}
 
 #endif //PLOGWIRTER_H

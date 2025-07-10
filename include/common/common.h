@@ -35,6 +35,7 @@
     #define DLL_API
 #endif
 
+
 namespace ptcat {
     //***************************************************
     //时钟定义
@@ -53,6 +54,7 @@ namespace ptcat {
         IndexNotFound = -99999,//索引未被发现
         KeyNotFound,//键未被发现
     };
+
 }
 
 

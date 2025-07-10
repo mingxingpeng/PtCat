@@ -1,6 +1,6 @@
 #include <iostream>
 #include "pthreadpool/pthreadpool.h"
-#include "plogwriter/logger/plogwirter.h"
+#include "plogwriter/plogwirter.h"
 #include <functional>
 #include "pclock/pstopwatch.h"
 #include "pclock/pchronograph.h"
@@ -187,5 +187,5 @@ void TestPthreadPool()
 
 void TestPLogWriter()
 {
-    PLogWriter plog;
+    ptcat::plog::PLogWriter plog;
 }

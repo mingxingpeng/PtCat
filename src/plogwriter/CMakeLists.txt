@@ -3,7 +3,20 @@ cmake_minimum_required(VERSION 3.28)
 project(PLogWriter)
 
 set(PTCAT_H_PRIVATE_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
-set(PTCAT_CPP_LOG_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/logger/plogwriter.cpp" PARENT_SCOPE)
+set(PTCAT_CPP_LOG_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/plogwriter.cpp"
+
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/detail/pcarve.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/detail/pcarvebase.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/detail/logmsg.cpp"
+
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/format.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/plaintextfmt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/jsonfmt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/csvfmt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/syslogfmt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/binaryfmt.cpp"
+        PARENT_SCOPE)
 
 
 
