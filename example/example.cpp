@@ -1,9 +1,9 @@
 #include <iostream>
-#include "pthreadpool/pthreadpool.h"
-#include "plogwriter/plogwirter.h"
+#include "ptcat/pthreadpool/pthreadpool.h"
+#include "ptcat/plogwriter/plogwirter.h"
 #include <functional>
-#include "pclock/pstopwatch.h"
-#include "pclock/pchronograph.h"
+#include "ptcat/pclock/pstopwatch.h"
+#include "ptcat/pclock/pchronograph.h"
 
 void TestClock();
 void TestPthreadPool();

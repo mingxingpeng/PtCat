@@ -2,7 +2,7 @@
 // Created by 27852 on 2025/7/10.
 //
 
-#ifndef CORE_H
+#ifndef  CORE_H
 #define CORE_H
 
 #include <string>
@@ -42,11 +42,37 @@ namespace ptcat {
         }
 #endif
 
+#define PTCAT_MIN_LOG_LEVEL_ALL      "A"
+#define PTCAT_MIN_LOG_LEVEL_TARCE    "T"
+#define PTCAT_MIN_LOG_LEVEL_DEBUG    "D"
+#define PTCAT_MIN_LOG_LEVEL_INFO     "I"
+#define PTCAT_MIN_LOG_LEVEL_WARN     "W"
+#define PTCAT_MIN_LOG_LEVEL_ERROR    "E"
+#define PTCAT_MIN_LOG_LEVEL_FATAL    "F"
+
+#if !defined(PTCAT_MIN_LOG_LEVEL_STRS)
+#define PTCAT_MIN_LOG_LEVEL_STRS        \
+{                                       \
+        PTCAT_MIN_LOG_LEVEL_ALL,        \
+        PTCAT_MIN_LOG_LEVEL_TARCE,      \
+        PTCAT_MIN_LOG_LEVEL_DEBUG,      \
+        PTCAT_MIN_LOG_LEVEL_INFO,       \
+        PTCAT_MIN_LOG_LEVEL_WARN,       \
+        PTCAT_MIN_LOG_LEVEL_ERROR,      \
+        PTCAT_MIN_LOG_LEVEL_FATAL       \
+}
+#endif
+
         static const std::string log_levels_[] PTCAT_LOG_LEVEL_STRS;//存储日志等级枚举的值
+        static const std::string short_log_levels_[] PTCAT_MIN_LOG_LEVEL_STRS;//存储日志等级枚举的值
 
         ///日志等级枚举转换为字符串
         inline const std::string& ToString(const LogLevel& level) {
             return log_levels_[level];//level 转换为数字索引
+        }
+
+        inline const std::string& ToShortString(const LogLevel& level) {
+            return short_log_levels_[level];//level 转换为数字索引
         }
 
         ///将对应字符串转换为枚举，如果没有则输出全部

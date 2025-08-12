@@ -5,7 +5,7 @@
 #ifndef CHRONOGRAPH_H
 #define CHRONOGRAPH_H
 
-#include "common/common.h"
+#include "ptcat/common/common.h"
 #include <atomic>
 #include <shared_mutex>
 

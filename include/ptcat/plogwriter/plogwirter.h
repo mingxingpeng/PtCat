@@ -67,7 +67,7 @@
     #define DLL_API
 #endif*/
 
-#include "common/common.h"
+#include "ptcat/common/common.h"
 
 namespace ptcat {
     namespace plog {

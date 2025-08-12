@@ -50,20 +50,20 @@ set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 #线程池库设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-add_subdirectory(src/pthreadpool)#在 pthreadpool 的 cmake 文件中定义文件地址
+add_subdirectory(src/ptcat/pthreadpool)#在 pthreadpool 的 cmake 文件中定义文件地址
 list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 
 #**********************************************
 #日志库设置
 #**********************************************
-add_subdirectory(src/plogwriter)
+add_subdirectory(src/ptcat/plogwriter)
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_LOG_DIR})#私有头文件
 list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_LOG_FILES})
 
 #**********************************************
 #时间库设置
 #**********************************************
-add_subdirectory(src/pclock)
+add_subdirectory(src/ptcat/pclock)
 #将头文件与 cpp 文件汇总
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_CLOCK_DIR})#私有头文件
 list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_CLOCK_FILES})

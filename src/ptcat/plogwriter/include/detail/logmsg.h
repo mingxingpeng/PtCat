@@ -11,6 +11,7 @@
 
 #include "core/core.h"
 #include <chrono>
+#include <string>
 
 namespace ptcat {
     namespace plog {

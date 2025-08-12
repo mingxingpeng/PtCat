@@ -1,7 +1,7 @@
 #retrive the current version
 function(ptcat_extract_version)
     #获取到 version.h 的头文件
-    file(READ ${CMAKE_CURRENT_LIST_DIR}/include/common/version.h ptcat_version)# CMAKE_CURRENT_LIST_DIR 用于获取 cmake 的根目录
+    file(READ ${CMAKE_CURRENT_LIST_DIR}/include/ptcat/common/version.h ptcat_version)# CMAKE_CURRENT_LIST_DIR 用于获取 cmake 的根目录
 
     #读取到对应的字符串文件
     string(REGEX MATCH "PTCAT_VERSION_MAJOR ([0-9]+)" _ "${ptcat_version}")#这里使用正则表达式从 ptcat_version 检索将检测结果存储到 _，但实际上是存储到 CMAKE_MATCH_0,CMAKE_MATCH_1,CMAKE_MATHC_2 中

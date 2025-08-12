@@ -5,7 +5,7 @@
 #ifndef PCLOCKHELPER_H
 #define PCLOCKHELPER_H
 #include <map>
-#include "common/common.h"
+#include "ptcat/common/common.h"
 #include <cmath>
 
 namespace ptcat {

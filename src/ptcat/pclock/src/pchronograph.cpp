@@ -2,7 +2,7 @@
 // Created by 27852 on 2025/5/27.
 //
 
-#include "pclock/pchronograph.h"
+#include "ptcat/pclock/pchronograph.h"
 #include <cassert>
 
 namespace ptcat {

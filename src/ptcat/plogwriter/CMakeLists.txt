@@ -16,6 +16,7 @@ set(PTCAT_CPP_LOG_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/format/csvfmt.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/format/syslogfmt.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/format/binaryfmt.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/format/pattern.cpp"
         PARENT_SCOPE)
 
 
