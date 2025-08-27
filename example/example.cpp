@@ -24,7 +24,7 @@ int main()
 }
 
 void TestFile() {
-    ptcat::pfilestream::PFolder folder("E:\\pmx\\1213\\ssds");
+    ptcat::pfilestream::PFolder folder("E:\\pmx\\1213");
     // bool is_exists = folder.IsExists();
     // bool is_succ = folder.Create();
     bool is_succ1 = folder.IsExistsAndCreate();
@@ -34,7 +34,8 @@ void TestFile() {
     // }
     // bool is_suuc1 = folder.Delete();
     // bool issuc = folder.Rename("pm121231231x1212");
-
+    // folder.Move("E:\\test\\");
+    // folder.Copy("E:\\test\\");
 }
 
 void TestClock(){

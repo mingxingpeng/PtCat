@@ -81,7 +81,7 @@ namespace ptcat {
 
             virtual  bool Move(std::string new_pos) = 0;//移动文件
 
-            virtual bool Copy(std::string new_pos) = 0;//创建副本
+            // virtual bool Copy(std::string new_pos) = 0;//创建副本
         };
     }
 }

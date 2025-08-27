@@ -3,6 +3,7 @@
 //
 
 #include "ptcat/pfilestream/pfolder.h"
+#include <iostream>
 
 namespace ptcat {
     namespace pfilestream {
@@ -52,18 +53,22 @@ namespace ptcat {
         }
 
         bool PFolder::Rename(std::string new_name) {
-            if (IsExists()) {
-                std::string new_path = path_.parent_path().string();
-                if (new_path.back() == '/' || new_path.back() == '\\') {
-                    new_path.append(new_name);
+            try {
+                if (IsExists()) {
+                    std::string new_path = path_.parent_path().string();
+                    if (new_path.back() == '/' || new_path.back() == '\\') {
+                        new_path.append(new_name);
+                    }else {
+                        new_path.append("/").append(new_name);
+                    }
+                    fs::rename(path_, new_path);
                 }else {
-                    new_path.append("/").append(new_name);
+                    return false;
                 }
-                fs::rename(path_, new_path);
-            }else {
+                return true;
+            }catch(...) {
                 return false;
             }
-            return true;
         }
 
         bool PFolder::Delete() {
@@ -81,12 +86,32 @@ namespace ptcat {
         }
 
         bool PFolder::Move(std::string new_path) {
-            return false;
+            try {//原理就是改变文件夹的前缀，就是改变其位置
+                if (IsExists()) {
+                    std::string path_name = path_.filename().string();
+                    if (new_path.back() == '/' || new_path.back() == '\\') {
+                        new_path.append(path_name);
+                    }else {
+                        new_path.append("/").append(path_name);
+                    }
+                    fs::rename(path_, new_path);
+                }else {
+                    return false;
+                }
+                return true;
+            }catch (...) {
+                return false;
+            }
+
         }
 
-        bool PFolder::Copy(std::string new_pos) {
-            return false;
-        }
+        // bool PFolder::Copy(std::string new_pos) {
+        //     if (IsExists()) {
+        //         //递归拷贝子目录以及覆盖已经存在的文件夹
+        //         fs::copy(path_, new_pos, fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+        //     }
+        //     return false;
+        // }
 
         void PFolder::GetAllFromFolder(std::vector<Path>& file_paths, std::string extension) {
             auto its = fs::directory_iterator(path_);

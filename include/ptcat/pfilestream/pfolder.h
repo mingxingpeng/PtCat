@@ -37,7 +37,7 @@ namespace ptcat {
 
             bool Move(std::string new_path) override;//移动文件夹
 
-            bool Copy(std::string new_pos) override;//创建副本
+            // bool Copy(std::string new_pos) override;//创建副本
 
             void GetAllFromFolder(std::vector<Path>& file_paths, std::string extension = "");//获取目录下所有的文件路径,根据后缀可筛选
         };
