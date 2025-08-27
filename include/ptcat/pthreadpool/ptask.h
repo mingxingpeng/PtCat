@@ -50,7 +50,7 @@ namespace ptcat//定义命名空间
             //static_assert(is_invocable<Function, Args...>::value, "the first parameter of the function must be of type ISEXIT.");
 
             /*使用列表表达式的方式成员变量赋值， std::tuple<Args...> args_ 获取参数包中的参数使用 std::make_tuple(std::forward<Args>(args)...) 方式获取*/
-            PTask(Function&& func, Args&&... args) : func_(std::forward<Function>(func)), args_(std::forward_as_tuple(std::forward<Args>(args)...))//使用 forward_as_tuple 在生成 tuple 时不会修改类型，而 make_tuple 会
+            explicit PTask(Function&& func, Args&&... args) : func_(std::forward<Function>(func)), args_(std::forward_as_tuple(std::forward<Args>(args)...))//使用 forward_as_tuple 在生成 tuple 时不会修改类型，而 make_tuple 会
             {
             }
 
@@ -58,7 +58,7 @@ namespace ptcat//定义命名空间
 
             PTask(const PTask&) = delete;
             PTask(const PTask&&) = delete;
-            PTask operator=(const PTask&) = delete;
+            PTask& operator=(const PTask&) = delete;
             PTask& operator=(const PTask&&) = delete;
 
             void Run() override

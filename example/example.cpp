@@ -13,9 +13,9 @@ void TestPLogWriter();
 
 int main()
 {
-    // TestClock();
+    TestClock();
     // TestPLogWriter();
-    TestPthreadPool();
+    // TestPthreadPool();
 
     return 0;
 }

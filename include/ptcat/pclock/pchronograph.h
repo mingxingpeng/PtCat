@@ -25,13 +25,13 @@ namespace ptcat {
             mutable std::shared_mutex s_mux_;//ensure thread safety,
         public:
             //这里推荐初始化列表使用花括号，更现代，因为对于容器类型数据会更友好， vector{1, 2, 3}
-            ChronoGraph();
+            explicit ChronoGraph();
 
             virtual ~ChronoGraph();
 
             ChronoGraph(const ChronoGraph& cg) = delete;
             ChronoGraph(const ChronoGraph&& cg) = delete;
-            ChronoGraph operator=(const ChronoGraph&) = delete;
+            ChronoGraph& operator=(const ChronoGraph&) = delete;
             ChronoGraph& operator=(const ChronoGraph&&) = delete;
 
             //judgement whether is's currenr runing

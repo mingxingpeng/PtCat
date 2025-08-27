@@ -36,9 +36,9 @@ namespace ptcat {
             PChrono::microseconds time_;//elapsed time
             PSteadyClock::time_point time_points_;
         public:
-            LapInfo() : is_running_{true}, time_{PChrono::microseconds(0)}, time_points_(PSteadyClock::now()){}
-            LapInfo(bool is_running, PChrono::microseconds time) : is_running_{is_running}, time_{time}, time_points_(PSteadyClock::now()){}
-            LapInfo(bool is_running, PChrono::microseconds time, PSteadyClock::time_point time_points) : is_running_{is_running}, time_{time}, time_points_(time_points){}
+            explicit LapInfo() : is_running_{true}, time_{PChrono::microseconds(0)}, time_points_(PSteadyClock::now()){}
+            explicit LapInfo(bool is_running, PChrono::microseconds time) : is_running_{is_running}, time_{time}, time_points_(PSteadyClock::now()){}
+            explicit LapInfo(bool is_running, PChrono::microseconds time, PSteadyClock::time_point time_points) : is_running_{is_running}, time_{time}, time_points_(time_points){}
 
             const PSteadyClock::time_point& GetTimePoints() {
                 return this->time_points_;
@@ -77,13 +77,13 @@ namespace ptcat {
             LapCollection laps_;//lap times
         public:
             //这里推荐初始化列表使用花括号，更现代，因为对于容器类型数据会更友好， vector{1, 2, 3}
-            StopWatch();
+            explicit StopWatch();
 
             ~StopWatch();
 
             StopWatch(const StopWatch& cg) = delete;
             StopWatch(const StopWatch&& cg) = delete;
-            StopWatch operator=(const StopWatch&) = delete;
+            StopWatch& operator=(const StopWatch&) = delete;
             StopWatch& operator=(const StopWatch&&) = delete;
 
             void Clear(std::string name = "");

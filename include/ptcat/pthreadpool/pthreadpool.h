@@ -79,12 +79,12 @@ namespace ptcat//定义命名空间
     {
         class DLL_API PThreadPool final {
         public:
-            PThreadPool();
+            explicit PThreadPool();
             ~PThreadPool();
 
             PThreadPool(const PThreadPool& p) = delete;
             PThreadPool(const PThreadPool&& p) = delete;
-            PThreadPool operator=(const PThreadPool& p) = delete;
+            PThreadPool& operator=(const PThreadPool& p) = delete;
             PThreadPool& operator=(const PThreadPool&& p) = delete;
 
             //创建线程池

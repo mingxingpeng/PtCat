@@ -22,38 +22,38 @@ namespace ptcat {
                     而像这样写 !is_running_ && "currently running..."
                         会展示 !is_running_ && "currently running..."
              **/
-            if (is_running_) throw std::runtime_error("ChronoGraph is already running...");
+            if (is_running_.load()) throw std::runtime_error("ChronoGraph is already running...");
             // assert(!is_running_ && "ChronoGraph is already running...");
             elapsed_time_ = PChrono::microseconds(0);
-            is_running_.store(true);//indicates that it is runing
             start_time_ = PSteadyClock::now();
+            is_running_.store(true);//indicates that it is runing
         }
 
         //stop record
         PLLONG ChronoGraph::Stop() {
             std::unique_lock<std::shared_mutex> lock(s_mux_);
             //判断程序有没有开启监测
-            if (!is_running_) throw std::runtime_error("timing not started...");
+            if (!is_running_.load()) throw std::runtime_error("timing not started...");
             // assert(is_running_ && "timing not started");
             auto end_time_ = PSteadyClock::now();
-            is_running_.store(false);
             elapsed_time_ = PChrono::duration_cast<PChrono::microseconds>(end_time_ - start_time_);
+            is_running_.store(false);
             return elapsed_time_.count();
         }
 
         //stop and reset timing
         void ChronoGraph::Reset() {
             std::unique_lock<std::shared_mutex> lock(s_mux_);
-            is_running_.store(false);
             elapsed_time_ = PChrono::microseconds(0);
+            is_running_.store(false);
         }
 
         //restart timing
         void ChronoGraph::ReStart() {
             std::unique_lock<std::shared_mutex> lock(s_mux_);
             elapsed_time_ = PChrono::microseconds(0);
-            is_running_.store(true);//indicates that it is runing
             start_time_ = PSteadyClock::now();
+            is_running_.store(true);//indicates that it is runing
         }
 
         PLLONG ChronoGraph::MicroElapsedTime() const{

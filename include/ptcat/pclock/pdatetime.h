@@ -134,18 +134,18 @@ namespace ptcat {
             double day_of_week_;
             double day_of_year_;
         public:
-            PDateTime();
+            explicit PDateTime();
 
-            PDateTime(const int year,
+            explicit PDateTime(const int year,
                 const int month,
                 const double day);
-            PDateTime(const int year,
+            explicit PDateTime(const int year,
                 const int month,
                 const double day,
                 const double hour,
                 const double minute,
                 const double second);
-            PDateTime(const int year,
+            explicit PDateTime(const int year,
                 const int month,
                 const double day,
                 const double hour,

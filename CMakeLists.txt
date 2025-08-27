@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.28)
 #2027/7/9 我将库改为不分库，即将所有库最后会生成一个总库，总库中调用对应区域的功能
 #**********************************************
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)#使用 C++ 17
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #**********************************************
@@ -67,6 +67,13 @@ add_subdirectory(src/ptcat/pclock)
 #将头文件与 cpp 文件汇总
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_CLOCK_DIR})#私有头文件
 list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_CLOCK_FILES})
+
+#**********************************************
+#文件库设置
+#**********************************************
+add_subdirectory(src/ptcat/pfilestream)
+#将头文件与 cpp 文件汇总
+list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_FILE_FILES})
 
 #**********************************************
 #展示汇总的数据

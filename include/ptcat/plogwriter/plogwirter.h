@@ -73,7 +73,8 @@ namespace ptcat {
     namespace plog {
         class DLL_API PLogWriter{
         public:
-            PLogWriter();
+            explicit PLogWriter();
+
         };
     }
 }
