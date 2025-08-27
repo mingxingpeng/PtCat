@@ -4,20 +4,37 @@
 #include <functional>
 #include "ptcat/pclock/pstopwatch.h"
 #include "ptcat/pclock/pchronograph.h"
+#include "ptcat/pfilestream/pfolder.h"
 
 void TestClock();
 void TestPthreadPool();
 void TestPLogWriter();
+void TestFile();
 
 
 
 int main()
 {
-    TestClock();
+    // TestClock();
     // TestPLogWriter();
     // TestPthreadPool();
+    TestFile();
 
     return 0;
+}
+
+void TestFile() {
+    ptcat::pfilestream::PFolder folder("E:\\pmx\\1213\\ssds");
+    // bool is_exists = folder.IsExists();
+    // bool is_succ = folder.Create();
+    bool is_succ1 = folder.IsExistsAndCreate();
+    // while (true) {
+    //     std::cout << folder.Size() << std::endl;
+    //     std::this_thread::sleep_for(std::chrono::seconds(1));
+    // }
+    // bool is_suuc1 = folder.Delete();
+    // bool issuc = folder.Rename("pm121231231x1212");
+
 }
 
 void TestClock(){

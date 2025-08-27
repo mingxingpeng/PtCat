@@ -5,56 +5,64 @@
 #ifndef PFILESTREAM_H
 #define PFILESTREAM_H
 
-#include <filesystem>
-#include <string>
+
+#include "pio.h"
 
 namespace ptcat {
     namespace pfilestream {
-        ///读写方式
-        enum class RWMode {
-            LINEBYLINE = 0,//逐行读写
-            BATCH = 1,
-        };
-
-        ///错误码
-        enum class ErrCode {
-            FILE_DOES_NOT_EXIST = -1,//文件不存在
-            FILE_CANNOT_BE_ACCESSED = -2,//文件无法访问
-            INSUFFICIENT_PERMISSION = -3,//权限不足
-            INSUFFICIENT_DISK_SPACE = -4,//磁盘空间不足
-            THE_READING_AND_WRITING_PROCESS_IS_INTERRUPTED = -5,//读写过程中断
-        };
-
-        ///打开模式
-        enum class OpenMode{
-            READONLY = 0,//只读
-            WRITEONLY = 1,//只写
-            READWRITE = 2,//读写
-            APPEND = 3,//添加
-            CREATE = 4,//创建
-        };
-
-        ///缓冲策略
-        enum class BufferStrategy {
-            DEFAULT = 0,//系统默认
-            LINEBUFFER = 1,//行缓冲
-            FULLBUFFER = 2,//全缓冲
-            NOBUFFER = 3,//无缓冲
-        };
-
         ///文件处理类
-        class PFileStream {
-        public :
-            //防止出现类似与字符串的那种隐士转换
-            explicit PFileStream() = default;
-            explicit PFileStream(std::string path, OpenMode mode = OpenMode::READWRITE, BufferStrategy bufferStrategy = BufferStrategy::DEFAULT);
-            ~PFileStream();
-
-            PFileStream(const PFileStream& p) = delete;
-            PFileStream(const PFileStream&& p) = delete;
-            PFileStream& operator=(const PFileStream& p) = delete;
-            PFileStream& operator=(const PFileStream&& p) = delete;
-        };
+        // class PFileStream  : public PIO {
+        // private:
+        //     OpenMode mode_;//打开方式
+        //     BufferStrategy bufferStrategy_;//缓冲模式
+        //
+        // public :
+        //     //防止出现类似与字符串的那种隐士转换
+        //     explicit PFileStream() = default;
+        //     explicit PFileStream(const std::string& path, OpenMode mode = OpenMode::READWRITE, BufferStrategy bufferStrategy = BufferStrategy::DEFAULT);
+        //     virtual ~PFileStream();
+        //
+        //     PFileStream(const PFileStream& p) = delete;
+        //     PFileStream(const PFileStream&& p) = delete;
+        //     PFileStream& operator=(const PFileStream& p) = delete;
+        //     PFileStream& operator=(const PFileStream&& p) = delete;
+        //
+        //     //打开方式
+        //     bool Open(const std::string& path, OpenMode mode = OpenMode::READWRITE, BufferStrategy bufferStrategy = BufferStrategy::DEFAULT);
+        //
+        //     bool IsExists() const override;//判断文件是否存在
+        //
+        //     uint64_t Size() const override;//尺寸
+        //
+        //     bool IsOpen() const;//文件是否打开、
+        //
+        //     void Rename(std::string new_name) override;//重命名文件
+        //
+        //     void Delete() override;//删除文件
+        //
+        //     void Create() override;//创建文件
+        //
+        //     void Move(std::string new_path) override;//移动文件
+        //
+        //     void Copy(std::string new_pos) override;//创建副本
+        //
+        //     void Close();//关闭文件
+        //
+        //     void Flush();//刷新
+        //
+        //
+        //     void ReadAll(std::string& content);//读取全部内容
+        //
+        //     void ReadLine(std::string& line);//读取一行内容
+        //
+        //     void WriteAll(const std::string& content);//写入当前全部内容
+        //
+        //     void WirteLine(const std::string& line);//写入一行内容
+        //
+        //     void ReadBulk(char* buf, size_t buf_size);//批量读取
+        //
+        //     void WriteBulk(const char* buf, size_t buf_size);//批量写入
+        // };
     }
 }
 #endif //PFILESTREAM_H
