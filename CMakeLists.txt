@@ -39,7 +39,8 @@ option(PTCAT_RUN_EXAMPLE "run the example" ON)
 #头文件和源文件集合
 #**********************************************
 set(PTCAT_H_PRIVATE_DIRS "")#获取所有私有的头文件
-set(PTCAT_CPP_ALL_FILES "")#获取所有涉及到的的 cpp 文件
+set(PTCAT_CPP_ALL_FILES ""
+)#获取所有涉及到的的 cpp 文件
 
 #**********************************************
 #暴露给外部使用的公共头文件

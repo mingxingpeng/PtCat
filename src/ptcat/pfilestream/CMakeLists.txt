@@ -4,8 +4,9 @@ project(PFileStream)
 
 #set(PTCAT_H_PRIVATE_LOG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 set(PTCAT_CPP_FILE_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/pfilestream.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/pfolder.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/pfile.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/ptextfilestream.cpp"
         PARENT_SCOPE)
 
 

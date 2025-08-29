@@ -7,10 +7,10 @@
 
 namespace ptcat {
     namespace pfilestream {
-        PFolder::PFolder(std::string folder) {
+        PFolder::PFolder(std::string folder)  {
             path_ = fs::path(folder);
             // if (!fs::is_directory(path_)){//这个方法对于已经存在的路径判断是否是文件夹，不符合我的要求
-            if (!IsDirectory(path_.string())){
+            if (!IsDirectory()){
                 throw std::runtime_error("The current path is not a folder");
             }
         }
@@ -30,12 +30,15 @@ namespace ptcat {
             return true;
         }
 
-        bool PFolder::IsDirectory(const std::string path) {
-            fs::path p(path);
+        bool PFolder::IsDirectory() {
+            if (IsExists()) {
+                return fs::is_directory(path_);
+            }
+            std::string path = path_.string();
             if (!path.empty() && (path.back() == '/' || path.back() == '\\')) {
                 return true;
             }
-            if (p.extension().empty()) {
+            if (path_.extension().empty()) {
                 return true;
             }
             return false;
@@ -52,7 +55,7 @@ namespace ptcat {
             return size_;
         }
 
-        bool PFolder::Rename(std::string new_name) {
+        bool PFolder::Rename(const std::string& new_name) {
             try {
                 if (IsExists()) {
                     std::string new_path = path_.parent_path().string();
@@ -85,16 +88,18 @@ namespace ptcat {
             return true;
         }
 
-        bool PFolder::Move(std::string new_path) {
+        bool PFolder::Move(const std::string& new_path) {
             try {//原理就是改变文件夹的前缀，就是改变其位置
                 if (IsExists()) {
                     std::string path_name = path_.filename().string();
+                    std::string move_path = "";//移动路径
+                    move_path.append(new_path);
                     if (new_path.back() == '/' || new_path.back() == '\\') {
-                        new_path.append(path_name);
+                        move_path.append(path_name);
                     }else {
-                        new_path.append("/").append(path_name);
+                        move_path.append("/").append(path_name);
                     }
-                    fs::rename(path_, new_path);
+                    fs::rename(path_, move_path);
                 }else {
                     return false;
                 }
@@ -113,7 +118,7 @@ namespace ptcat {
         //     return false;
         // }
 
-        void PFolder::GetAllFromFolder(std::vector<Path>& file_paths, std::string extension) {
+        void PFolder::GetAllFromFolder(std::vector<Path>& file_paths, const std::string& extension) {
             auto its = fs::directory_iterator(path_);
             for (auto& it : its) {
                 fs::path path = it.path();

@@ -5,6 +5,8 @@
 #include "ptcat/pclock/pstopwatch.h"
 #include "ptcat/pclock/pchronograph.h"
 #include "ptcat/pfilestream/pfolder.h"
+#include "ptcat/pfilestream/pfile.h"
+#include "ptcat/pfilestream/ptextfilestream.h"
 
 void TestClock();
 void TestPthreadPool();
@@ -24,10 +26,10 @@ int main()
 }
 
 void TestFile() {
-    ptcat::pfilestream::PFolder folder("E:\\pmx\\1213");
+    // ptcat::pfilestream::PFolder folder("E:\\pmx\\1213");
     // bool is_exists = folder.IsExists();
     // bool is_succ = folder.Create();
-    bool is_succ1 = folder.IsExistsAndCreate();
+    // bool is_succ1 = folder.IsExistsAndCreate();
     // while (true) {
     //     std::cout << folder.Size() << std::endl;
     //     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -35,7 +37,41 @@ void TestFile() {
     // bool is_suuc1 = folder.Delete();
     // bool issuc = folder.Rename("pm121231231x1212");
     // folder.Move("E:\\test\\");
-    // folder.Copy("E:\\test\\");
+
+    // ptcat::pfilestream::PFile pfile;
+    // pfile.Open("C:\\Users\\27852\\Desktop\\img\\1\\2\\1000.jpg");
+    // pfile.Rename("test.jpg");
+    // pfile.Delete();
+    // pfile.Copy("C:\\Users\\27852\\Desktop\\1");
+    // pfile.Move("C:\\Users\\27852\\Desktop\\1");
+    // pfile.Create();
+
+    ptcat::pfilestream::PTextFileStream stream;
+    stream.Open("E:\\test\\img\\12\\2\\dsa\\0.txt", ptcat::pfilestream::OpenMode::W_APPEND);
+    int size = stream.Size();
+    std::string line = "hello world";
+    stream.WriteLine("zhenshi", true);
+    stream.WriteLine("1221312312312313123123213");
+    stream.WriteAll("11111111111111111111111111111111111111111111111111111111");
+    stream.WriteAll("11111111111111111111111111111111111111111111111111111111");
+    stream.WriteAll("11111111111111111111111111111111111111111111111111111111");
+    stream.WriteAll("11111111111111111111111111111111111111111111111111111111");
+    stream.WriteAll("11111111111111111111111111111111111111111111111111111111");
+    stream.Flush();
+    stream.ReadLine(line);
+    std::cout << line << std::endl;
+    stream.ReadLine(line);
+    std::cout << line << std::endl;
+    stream.ReadLine(line);
+    std::cout << line << std::endl;
+    std::cout << "----------------------------------" << std::endl;
+    stream.ReadAll(line);
+    std::cout << line << std::endl;
+    stream.SeekPos(0, ptcat::pfilestream::Pos::BEGIN);
+    // size = stream.Size();
+    stream.SeekPos(0, ptcat::pfilestream::Pos::END);
+
+    stream.Close();
 }
 
 void TestClock(){
@@ -43,14 +79,14 @@ void TestClock(){
     sw.Start();
     std::this_thread::sleep_for(std::chrono::milliseconds(10000));
     sw.Stop();
-    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " ?s" << std::endl;
     std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
     std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
 
     sw.Start();
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     sw.Stop();
-    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " μs" << std::endl;
+    std::cout << "MicroElapsedTime = " << sw.MicroElapsedTime() << " ?s" << std::endl;
     std::cout << "MilliElapsedTime = " << sw.MilliElapsedTime() << " ms" << std::endl;
     std::cout << "ElapsedTime = " << sw.ElapsedTime() << " s" << std::endl;
 
@@ -64,19 +100,19 @@ void TestClock(){
     sw.LapStart("1");
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     sw.LapStop("1");
-    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " ?s" << std::endl;
     std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
     std::cout << "LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " μs" << std::endl;
+    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " ?s" << std::endl;
     std::cout << "2 LAPMilliElapsedTime = " << sw.MilliLapTime("2") << " ms" << std::endl;
     std::cout << "2 LAPElapsedTime = " << sw.LapTime("2") << " s" << std::endl;
     sw.LapStart("2");
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     sw.LapStop("2");
-    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " μs" << std::endl;
+    std::cout << "LAPMicroElapsedTime = " << sw.MicroLapTime("1") << " ?s" << std::endl;
     std::cout << "LAPMilliElapsedTime = " << sw.MilliLapTime("1") << " ms" << std::endl;
     std::cout << "LAPElapsedTime = " << sw.LapTime("1") << " s" << std::endl;
-    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " μs" << std::endl;
+    std::cout << "2 LAPMicroElapsedTime = " << sw.MicroLapTime("2") << " ?s" << std::endl;
     std::cout << "2 LAPMilliElapsedTime = " << sw.MilliLapTime("2") << " ms" << std::endl;
     std::cout << "2 LAPElapsedTime = " << sw.LapTime("2") << " s" << std::endl;
 
@@ -86,10 +122,10 @@ void TestClock(){
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     sw.LapStop("4");
     sw.LapStop("3");
-    std::cout << "3 LAPMicroElapsedTime = " << sw.MicroLapTime("3") << " μs" << std::endl;
+    std::cout << "3 LAPMicroElapsedTime = " << sw.MicroLapTime("3") << " ?s" << std::endl;
     std::cout << "3 LAPMilliElapsedTime = " << sw.MilliLapTime("3") << " ms" << std::endl;
     std::cout << "3 LAPElapsedTime = " << sw.LapTime("3") << " s" << std::endl;
-    std::cout << "4 LAPMicroElapsedTime = " << sw.MicroLapTime("4") << " μs" << std::endl;
+    std::cout << "4 LAPMicroElapsedTime = " << sw.MicroLapTime("4") << " ?s" << std::endl;
     std::cout << "4 LAPMilliElapsedTime = " << sw.MilliLapTime("4") << " ms" << std::endl;
     std::cout << "4 LAPElapsedTime = " << sw.LapTime("4") << " s" << std::endl;
 }
