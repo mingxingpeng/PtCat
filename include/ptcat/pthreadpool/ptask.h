@@ -28,6 +28,7 @@ namespace ptcat//定义命名空间
         {
         public:
             ISEXIT is_exit_ = nullptr;//设置是否推出
+            bool is_wait_= false;
             virtual void Run() = 0;
 
         protected:
@@ -35,6 +36,11 @@ namespace ptcat//定义命名空间
 
             //设置为虚析构，防止为父类传递子类对象，然后调用父类调用函数析构时不调用子类析构函数
             virtual ~Task()= default;
+
+        public:
+            void SetWaitStatus(bool status) {
+                is_wait_ = status;
+            }
         };
 
         /*

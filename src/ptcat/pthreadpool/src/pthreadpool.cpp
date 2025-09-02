@@ -8,7 +8,7 @@ namespace ptcat
 {
     namespace threadpool
     {
-        PThreadPool::PThreadPool() : is_exit_(false), threads_run_count_(0)//使用初始化成员列表为对应参数赋予初始化
+        PThreadPool::PThreadPool() : is_exit_(false), threads_run_count_(0), threads_wait_count_(0)//使用初始化成员列表为对应参数赋予初始化
         {}
 
         PThreadPool::~PThreadPool()
@@ -38,7 +38,7 @@ namespace ptcat
             is_exit_ = true;
             //通知所有线程
             cv_.notify_all();
-            //wait_cv_.notify_all();
+            wait_cv_.notify_all();//退出时需要通知一下堵塞代码
             //等待所有的线程运行结束
             for (auto& item : threads_)
             {
@@ -121,6 +121,9 @@ namespace ptcat
                     try
                     {
                         threads_run_count_.fetch_add(1);//去除内存屏障，减少性能损失
+                        if (task->is_wait_) {//如果当前线程是等待线程的话， ++
+                            threads_wait_count_.fetch_add(1);
+                        }
                         task->Run();
                     }catch (std::exception e)
                     {
@@ -128,14 +131,15 @@ namespace ptcat
                         break;
                     }
                 }
-                if (threads_run_count_.load() == 1) {//看是不是最后一个任务
-                    threads_run_count_.fetch_sub(1);
-                    //notice to stop waiting
-                    wait_cv_.notify_one();
-                }else {
-                    threads_run_count_.fetch_sub(1);
-                }
+                threads_run_count_.fetch_sub(1);
 
+                if (task->is_wait_) {
+                    threads_wait_count_.fetch_sub(1);
+                    if (threads_wait_count_.load() == 0) {//看是不是最后一个任务
+                        //notice to stop waiting
+                        wait_cv_.notify_one();
+                    }
+                }
             }
         }
 
@@ -143,9 +147,11 @@ namespace ptcat
         void PThreadPool::WaitCurrentTask() {
             std::unique_lock<std::mutex> lock(wait_mux_);
             // wait_cv_.wait(lock, [&]() {
-            //     return threads_run_count_.load() == 0 || is_exit_;//Check if it returns true, return true and continue to execute downwards
+            //     return threads_wait_count_.load() == 0 || is_exit_;//Check if it returns true, return true and continue to execute downwards
             // });
-            wait_cv_.wait(lock);//上面那种写法可能会被后面的谓词影响导致等待失败，wait 一开始为 true,比线程内 threads_run_count_++ 快就会导致这里等待不了直接往下走
+            wait_cv_.wait(lock, [&]() {
+                return threads_wait_count_.load() == 0 ;
+            });//上面那种写法可能会被后面的谓词影响导致等待失败，wait 一开始为 true,比线程内 threads_run_count_++ 快就会导致这里等待不了直接往下走
 
         }
     }

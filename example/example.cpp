@@ -19,8 +19,8 @@ int main()
 {
     // TestClock();
     // TestPLogWriter();
-    // TestPthreadPool();
-    TestFile();
+    TestPthreadPool();
+    // TestFile();
 
     return 0;
 }
@@ -171,17 +171,39 @@ void TestPthreadPool()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
+        pool.AddTask(ptcat::task::make_task([&](ptcat::task::ISEXIT is_exit)
+      {
+            auto task = ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
+        {
+             // std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::cout << str << std::endl;
+        }, "i miss you");
+         task->SetWaitStatus(false);
+         pool.AddTask(task);
 
-        pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
-       {
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-           std::cout << str << std::endl;
-       }, "i miss you"));
-        pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
-       {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-           std::cout << str << std::endl;
-       }, "i miss you1"));
+         auto task1 = ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
+        {
+             // std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::cout << str << std::endl;
+        }, "i miss you1");
+         task1->SetWaitStatus(false);
+         pool.AddTask(task1);
+
+         auto task2 = ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
+        {
+             std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::cout << str << std::endl;
+        }, "i miss you1_test");
+         task2->SetWaitStatus(false);
+         pool.AddTask(task2);
+
+         std::cout << "before wait" << std::endl;
+          pool.WaitCurrentTask();
+         std::cout << "after wait" << std::endl;
+      }));
+
+
+        std::this_thread::sleep_for(std::chrono::seconds(30));
 
         pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
        {
@@ -189,11 +211,6 @@ void TestPthreadPool()
            std::cout << str << std::endl;
        }, "i miss you2"));
 
-        std::cout << "before wait" << std::endl;
-
-
-         pool.WaitCurrentTask();
-        std::cout << "after wait" << std::endl;
 
         pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, std::string str)
       {
@@ -206,16 +223,16 @@ void TestPthreadPool()
            std::cout << str << std::endl;
        }, "i miss you1222"));
 
-         pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
-        {
-            while(true)
-            {
-                if (is_exit())
-                    break;
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
-                std::cout << num << "  " << str << std::endl;
-            }
-        }, 100, "i miss you -------"));
+        //  pool.AddTask(ptcat::task::make_task([](ptcat::task::ISEXIT is_exit, int num, std::string str)
+        // {
+        //     while(true)
+        //     {
+        //         if (is_exit())
+        //             break;
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        //         std::cout << num << "  " << str << std::endl;
+        //     }
+        // }, 100, "i miss you -------"));
 
         std::this_thread::sleep_for(std::chrono::seconds(5));
         pool.DestroyThreadPool();

@@ -118,6 +118,7 @@ namespace ptcat//定义命名空间
             bool is_exit_;
             //运行线程数量
             std::atomic_int threads_run_count_;
+            std::atomic_int threads_wait_count_;
             //锁
             std::mutex thread_mux_;
 
