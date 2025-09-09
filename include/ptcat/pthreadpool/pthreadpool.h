@@ -111,6 +111,11 @@ namespace ptcat//定义命名空间
             }
 
             void WaitCurrentTask();//用于等待当前线程池中任务完成
+
+            int alive_thread_count() const
+            {
+                return alive_thread_count_.load();//确保内存屏障后续操作不会在内存屏障之前进行操作
+            }
         private:
             //用于存储线程
             std::vector<std::shared_ptr<std::thread>> threads_;
@@ -129,6 +134,8 @@ namespace ptcat//定义命名空间
             std::mutex wait_mux_;//用于等待任务全部完成
 
             std::condition_variable wait_cv_;//用于通知任务全部完成
+
+            std::atomic_int alive_thread_count_;//活着的线程数量
 
             void Run();//运行函数
 

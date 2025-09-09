@@ -8,7 +8,7 @@ namespace ptcat
 {
     namespace threadpool
     {
-        PThreadPool::PThreadPool() : is_exit_(false), threads_run_count_(0), threads_wait_count_(0)//使用初始化成员列表为对应参数赋予初始化
+        PThreadPool::PThreadPool() : is_exit_(false), threads_run_count_(0), threads_wait_count_(0), alive_thread_count_(0)//使用初始化成员列表为对应参数赋予初始化
         {}
 
         PThreadPool::~PThreadPool()
@@ -112,12 +112,13 @@ namespace ptcat
         //运行函数
         void PThreadPool::Run()
         {
+            alive_thread_count_.fetch_add(1);
             while (!is_exit_)
             {
                 auto task = GetTask();
                 if (task)//为 nullptr 不进行处理
                 {
-                    //加一个 try_catch, 防止一个线程因为传进来的函数导致其他函数也被销毁
+                    //加一个 try_catch, 防止一个线程因为传进来的函数导致其他线程也被销毁
                     try
                     {
                         threads_run_count_.fetch_add(1);//去除内存屏障，减少性能损失
@@ -125,22 +126,33 @@ namespace ptcat
                             threads_wait_count_.fetch_add(1);
                         }
                         task->Run();
-                    }catch (std::exception e)
-                    {
-                        std::cerr << std::this_thread::get_id() << " error: " << e.what() << std::endl;
-                        break;
-                    }
-                }
-                threads_run_count_.fetch_sub(1);
 
-                if (task->is_wait_) {
-                    threads_wait_count_.fetch_sub(1);
-                    if (threads_wait_count_.load() == 0) {//看是不是最后一个任务
-                        //notice to stop waiting
-                        wait_cv_.notify_one();
+                    }catch (...)//设置可以抓取所有的报错
+                    {
+                        threads_run_count_.fetch_sub(1);
+                        if (task->is_wait_) {
+                            threads_wait_count_.fetch_sub(1);
+                            if (threads_wait_count_.load() == 0) {//看是不是最后一个任务
+                                //notice to stop waiting
+                                wait_cv_.notify_one();
+                            }
+                        }
+
+                        std::cerr << "thread_id: " <<std::this_thread::get_id() << " error" << std::endl;
+                        break;//break 之后就不会走到下面了,线程数量会缺少一个线程
+                    }
+
+                    threads_run_count_.fetch_sub(1);
+                    if (task->is_wait_) {
+                        threads_wait_count_.fetch_sub(1);
+                        if (threads_wait_count_.load() == 0) {//看是不是最后一个任务
+                            //notice to stop waiting
+                            wait_cv_.notify_one();
+                        }
                     }
                 }
             }
+            alive_thread_count_.fetch_sub(1);
         }
 
         //waiting for the current tasks to complete
