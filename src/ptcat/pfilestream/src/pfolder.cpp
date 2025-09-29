@@ -125,7 +125,7 @@ namespace ptcat {
                 if (!extension.empty() && path.extension() != extension) {
                     continue;
                 }
-                file_paths.emplace_back(Path(path.filename().string(), path.string(), path.extension().string()));
+                file_paths.emplace_back(Path(path.filename().string(), path.extension().string(), path.string()));
             }
             size_ = file_paths.size();
         }
