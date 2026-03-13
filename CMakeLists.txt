@@ -39,10 +39,7 @@ option(PTCAT_RUN_EXAMPLE "run the example" ON)
 #头文件和源文件集合
 #**********************************************
 set(PTCAT_H_PRIVATE_DIRS "")#获取所有私有的头文件
-set(PTCAT_CPP_ALL_FILES ""
-        include/ptcat/palgorithm/fft/pfft.h
-        include/ptcat/palgorithm/filter/pfilter.h
-        include/ptcat/palgorithm/sort/psort.h)#获取所有涉及到的的 cpp 文件
+set(PTCAT_CPP_ALL_FILES "")#获取所有涉及到的的 cpp 文件
 
 #**********************************************
 #暴露给外部使用的公共头文件
@@ -83,6 +80,8 @@ list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_FILE_FILES})
 #**********************************************
 add_subdirectory(src/ptcat/palgorithm)
 #将头文件与 cpp 文件汇总
+list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_ALGO_DIR})
+list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_ALGO_FILES})
 
 
 #**********************************************

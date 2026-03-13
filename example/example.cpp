@@ -19,7 +19,7 @@ int main()
 {
     // TestClock();
     // TestPLogWriter();
-    TestPthreadPool();
+//    TestPthreadPool();
     // TestFile();
 
     return 0;

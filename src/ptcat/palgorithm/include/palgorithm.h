@@ -5,6 +5,8 @@
 #ifndef PTCAT_PALGORITHM_H
 #define PTCAT_PALGORITHM_H
 
+#include "ptcat/common/common.h"
+
 namespace ptcat{
     namespace palgo{//Ëã·¨ÃüÃû¿Õ¼ä
 
