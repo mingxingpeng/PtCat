@@ -12,9 +12,9 @@ namespace ptcat{
     namespace palgo{//算法命名空间
 
         //中值滤波
-        void MediaFilter(double* data, int height, int width, int kernel);
+        DLL_API void MediaFilter(double* data, int height, int width, int kernel);
         //中值滤波
-        void MediaFilter(float* data, int height, int width, int kernel);
+        DLL_API void MediaFilter(float* data, int height, int width, int kernel);
     }
 }
 #endif //PTCAT_PFILTER_H

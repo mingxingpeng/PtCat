@@ -17,7 +17,7 @@ namespace ptcat {
         public:
             PMemoryPool() : spr_{[]{
                 std::pmr::pool_options po;
-                po.largest_required_pool_block = 1024 * 1024 * 20;//超过 20 M 的数据调用 new delete, 反之走内存池
+                po.largest_required_pool_block = 1024 * 1024 * 50;//超过 50 M 的数据调用 new delete, 反之走内存池
                 return po;
             }()}{
                 std::cout << "你好，我是丁振" << std::endl;

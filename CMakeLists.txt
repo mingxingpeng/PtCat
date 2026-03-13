@@ -101,6 +101,9 @@ set(BUILD_SHARED_LIBS ${PTCAT_LIB_SHARED})
 #**********************************************
 set(PTCAT_LIB_PROJECT_NAMES ${PROJECT_NAME})#默认当前库
 
+
+find_package(OpenMP REQUIRED)#查找 OpenMP
+
 add_library(${PROJECT_NAME} ${PTCAT_CPP_ALL_FILES})
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
 if (NOT PTCAT_LIB_SHARED)
@@ -113,6 +116,9 @@ endif ()
 target_include_directories(${PROJECT_NAME}
         PUBLIC ${PTCAT_H_COMMON_DIR}
         PRIVATE ${PTCAT_H_PRIVATE_DIRS})#设置私有头文件
+
+#链接 OpenMP 库
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenMP::OpenMP_CXX)
 
 #设置库的属性
 set_target_properties(${PROJECT_NAME} PROPERTIES
