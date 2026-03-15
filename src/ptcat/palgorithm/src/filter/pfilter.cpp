@@ -20,5 +20,15 @@ namespace ptcat{
         void MediaFilter(float* data, int height, int width, int kernel){
             core::MediaFilter(data, height, width, kernel);
         }
+
+        void GaussianFilter(double* data, int height, int width, int kernel){
+
+        }
+
+
+        //中值滤波， 数据为空就直接报错
+        void GaussianFilter(float* data, int height, int width, int kernel){
+
+        }
     }
 }

@@ -15,6 +15,12 @@ namespace ptcat{
         DLL_API void MediaFilter(double* data, int height, int width, int kernel);
         //中值滤波
         DLL_API void MediaFilter(float* data, int height, int width, int kernel);
+
+        //高斯滤波
+        DLL_API void GaussianFilter(double* data, int height, int width, int kernel);
+
+        //高斯滤波
+        DLL_API void GaussianFilter(float* data, int height, int width, int kernel);
     }
 }
 #endif //PTCAT_PFILTER_H
