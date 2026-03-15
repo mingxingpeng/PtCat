@@ -17,6 +17,20 @@ namespace ptcat {
     namespace palgo {//算法命名空间
         namespace core{
             //中值滤波， 数据为空就直接报错
+            /*
+            中值滤波原理：
+                中值滤波是一种非线性的数字滤波技术，核心思想非常简单直观：
+                    用邻域内所有像素值的中位数来代替当前像素的值
+            工作原理
+                定义邻域窗口：以当前像素为中心，定义一个固定大小的窗口
+                        收集像素值：获取窗口内所有像素的数值
+                        排序取中：将这些值排序，取中间位置的值
+                        替换原值：用这个中位数替换当前像素的值
+            为什么有效？
+                椒盐噪声（随机黑白点）通常表现为极端的最大值或最小值，排序后这些极端值会跑到两端，中位数不会被它们影响
+                        边缘保留：中位数能很好地保留边缘信息，因为边缘两侧的像素值不会互相平均
+             */
+
             template<class T>
             void MediaFilter(T* data, int height, int width, int kernel){
                 if (!data || height <= 0 || width <= 0 || kernel <= 0) throw std::invalid_argument("invalid parameter");
