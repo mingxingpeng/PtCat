@@ -9,52 +9,10 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+#include "filter/filter_core.h"
 
-/**
- * 快速选择算法 - 用于找到中位数（平均 O(n) 复杂度）
- */
-float quickSelect(float* arr, int n, int k) {
-    int left = 0, right = n - 1;
-    while (left < right) {
-        float pivot = arr[(left + right) / 2];
-        int i = left, j = right;
-        while (i <= j) {
-            while (arr[i] < pivot) i++;
-            while (arr[j] > pivot) j--;
-            if (i <= j) {
-                std::swap(arr[i], arr[j]);
-                i++;
-                j--;
-            }
-        }
-        if (k <= j) {
-            right = j;
-        }
-        else if (k >= i) {
-            left = i;
-        }
-        else {
-            return arr[k];
-        }
-    }
-    return arr[left];
-}
 
-/**
- * 获取中位数 - 对于小窗口使用排序，大窗口使用快速选择
- */
-float getMedian(float* values, int count) {
-    if (count == 1) return values[0];
 
-    // 对于小窗口（<= 9），直接使用 std::nth_element 更简单
-    if (count <= 9) {
-        std::nth_element(values, values + count / 2, values + count);
-        return values[count / 2];
-    }
-
-    // 对于大窗口，使用快速选择
-    return quickSelect(values, count, count / 2);
-}
 
 
 namespace ptcat{
@@ -108,15 +66,13 @@ namespace ptcat{
                     //对数据进行排序
                     if (sort_real_count > 0){
                         //修改为当前中值，否则保持原值
-                        *curr_data = getMedian(sort_data, sort_real_count);
+                        *curr_data = GetMedianElement(sort_data, sort_real_count);
                     }
                     //遍历到下一个数据
                     curr_data++;
                 }
                 mpool.DeAllocate(sort_data, kernel_size);
             }
-
-
             mpool.DeAllocate(temp, data_size);
         }
     }
