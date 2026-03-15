@@ -5,8 +5,6 @@
 #ifndef PTCAT_PALGORITHM_H
 #define PTCAT_PALGORITHM_H
 
-#include "ptcat/common/common.h"
-
 namespace ptcat{
     namespace palgo{//算法命名空间
         /**
@@ -20,38 +18,60 @@ namespace ptcat{
          *      快速选择算法是快速排序的变种，用于解决选择问题（找到第 k 小/大的元素）。它的核心思想是：只递归处理包含目标的那一半，而不是像快速排序那样处理全部
          *
          */
-        inline float QuickSelect(float* arr, int n, int k) {
-            int left = 0, right = n - 1;
-            while (left < right) {
-                float pivot = arr[(left + right) / 2];
+        //k_index 是索引，找出第 k+1 小的数据
+        template<class T>
+        inline T QuickSelect(T* arr, int count, int k_index){
+            // 1. 核心边界校验：避免越界访问
+            if (!arr || count <= 0 || k_index < 0 || k_index >= count) {
+                // 可根据业务需求调整（比如抛出异常），这里返回 NaN 更易识别错误
+                return NAN;
+            }
+            int left = 0, right = count - 1;//获取到分区界限
+            //根据当前分区进行进行排序
+            while(left < right){
                 int i = left, j = right;
-                while (i <= j) {
-                    while (arr[i] < pivot) i++;
-                    while (arr[j] > pivot) j--;
-                    if (i <= j) {
+                /*
+                如果中间是极值，就会导致循环多几次，所以使用三位数取中来避开极值
+                 */
+                //取当前分组的中间值作为基准值
+                //T pivot = arr[(left + right) / 2];
+                //优化基准值的初始值，三位数取中选择基准值
+                int mid = left + (right - left) / 2;
+                if (arr[left] > arr[mid]) std::swap(arr[left], arr[mid]);
+                if (arr[mid] > arr[right]) std::swap(arr[mid], arr[right]);
+                if (arr[left] > arr[mid]) std::swap(arr[left], arr[mid]);
+                T pivot = arr[mid];
+
+                //将大于基准值的值移到右边，小于基准值的值移到左边
+                while(i <= j){
+                    while(arr[i] < pivot) i++;//对于小于基准值的数据，不需要移动，否则需要移动到基准值的右边,即找到左边第一个 >= pivot 的元素
+                    while(arr[j] > pivot) j--;//对于大于基准值的数据，不需要移动，否则需要移动到基准值的左边,即找到右边第一个 <= pivot 的元素
+                    //对数据进行移动，即小于基准值的数据移动到左边，大于基准值的数据移动到右边
+                    if (i <= j){
                         std::swap(arr[i], arr[j]);
                         i++;
                         j--;
                     }
                 }
-                if (k <= j) {
+                //重新进行分组，然后重复上面的步骤
+                if (k_index <= j)//如果需要找的索引小于 j, 说明需要寻找的目标数据在左边，将右边的界限索引更新为 j
                     right = j;
-                }
-                else if (k >= i) {
+                else if(k_index >= i)//如果需要找的索引大于 i, 说明需要寻找的目标数据在右边，将左边的界限索引更新为 i
                     left = i;
-                }
-                else {
-                    return arr[k];
-                }
+                else
+                    return arr[k_index];
             }
             return arr[left];
         }
 
 
+
+
         /**
          * 获取中位数 - 对于小窗口使用排序，大窗口使用快速选择
          */
-        float GetMedianElement(float* values, int count) {
+        template<class T>
+        inline T GetMedianElement(T* values, int count) {
             if (count == 1) return values[0];
             int half_value = count / 2;
 
