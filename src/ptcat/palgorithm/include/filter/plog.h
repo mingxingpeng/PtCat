@@ -126,15 +126,10 @@ namespace ptcat {
 
                 void CoorectKernelSize(double sigma, int& kernel_size){
                     //如果核大小不为奇数，转为奇数
-                    if (kernel_size == 0) {
+                    if (kernel_size == 0)
                         kernel_size = static_cast<int>(std::ceil(6 * sigma));
-                        if (kernel_size % 2 == 0)
-                            kernel_size += 1;
-                    }else{
-                        //对偶数进行处理
-                        if (kernel_size % 2 == 0)
-                            kernel_size += 1;
-                    }
+                    if (kernel_size % 2 == 0)
+                        kernel_size += 1;
                 }
 
                 std::shared_ptr<const double[]> Get(double sigma, int& kernel_size){
