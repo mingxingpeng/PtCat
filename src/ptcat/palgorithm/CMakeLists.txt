@@ -6,5 +6,6 @@ set(PTCAT_CPP_ALGO_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/fft/pfft.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/filter/pfilter.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/sort/psort.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/select/pselect.cpp"
         PARENT_SCOPE
 )

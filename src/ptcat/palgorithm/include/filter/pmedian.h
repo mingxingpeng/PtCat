@@ -1,21 +1,19 @@
 //
-// Created by 27852 on 2026/3/13.
+// Created by 27852 on 2026/3/16.
 //
 
-#ifndef PTCAT_FILTER_CORE_H
-#define PTCAT_FILTER_CORE_H
+#ifndef PTCAT_PMEDIAN_H
+#define PTCAT_PMEDIAN_H
 
-
-#include "../palgorithm.h"
+#include "../select/pquicksel.h"
 #include "../pmemorypool.h"
-#include <algorithm>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 namespace ptcat {
     namespace palgo {//算法命名空间
-        namespace core{
+        namespace median{
             //中值滤波， 数据为空就直接报错
             /*
             中值滤波原理：
@@ -72,7 +70,7 @@ namespace ptcat {
                         //对数据进行排序
                         if (sort_real_count > 0){
                             //修改为当前中值，否则保持原值
-                            *curr_data = GetMedianElement(sort_data, sort_real_count);
+                            *curr_data = quicksel::GetMedianElement(sort_data, sort_real_count);
                         }
                         //遍历到下一个数据
                         curr_data++;
@@ -84,4 +82,5 @@ namespace ptcat {
         }
     }
 }
-#endif //PTCAT_FILTER_CORE_H
+
+#endif //PTCAT_PMEDIAN_H

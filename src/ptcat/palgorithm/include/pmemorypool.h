@@ -20,8 +20,7 @@ namespace ptcat {
                 po.largest_required_pool_block = 1024 * 1024 * 50;//超过 50 M 的数据调用 new delete, 反之走内存池
                 return po;
             }()}{
-                std::cout << "你好，我是丁振" << std::endl;
-
+                std::cout << "memory pool init..." << std::endl;
             }
 
             ~PMemoryPool(){
