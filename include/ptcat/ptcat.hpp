@@ -1,0 +1,20 @@
+//
+// Created by 27852 on 2026/3/16.
+//
+
+#ifndef PTCAT_PALGOCORE_H
+#define PTCAT_PALGOCORE_H
+
+#include "ptcat/utils/threadpool/pthreadpool.h"
+
+#include "ptcat/utils/clock/pstopwatch.h"
+
+#include "ptcat/fft/pfft.h"
+
+#include "ptcat/filter/pfilter.h"
+
+#include "ptcat/sort/psort.h"
+
+#include "ptcat/select/pselect.h"
+
+#endif //PTCAT_PALGOCORE_H

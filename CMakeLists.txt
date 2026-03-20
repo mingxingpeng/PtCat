@@ -47,38 +47,24 @@ set(PTCAT_CPP_ALL_FILES "")#获取所有涉及到的的 cpp 文件
 set(PTCAT_H_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 #**********************************************
-#线程池库设置
+#线程池设置
 #**********************************************
 #设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
-add_subdirectory(src/ptcat/pthreadpool)#在 pthreadpool 的 cmake 文件中定义文件地址
+add_subdirectory(src/ptcat/utils/threadpool)#在 threadpool 的 cmake 文件中定义文件地址
 list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 
 #**********************************************
-#日志库设置
+#时间设置
 #**********************************************
-add_subdirectory(src/ptcat/plogwriter)
-list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_LOG_DIR})#私有头文件
-list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_LOG_FILES})
-
-#**********************************************
-#时间库设置
-#**********************************************
-add_subdirectory(src/ptcat/pclock)
+add_subdirectory(src/ptcat/utils/clock)
 #将头文件与 cpp 文件汇总
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_CLOCK_DIR})#私有头文件
 list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_CLOCK_FILES})
 
 #**********************************************
-#文件库设置
+#算法设置
 #**********************************************
-add_subdirectory(src/ptcat/pfilestream)
-#将头文件与 cpp 文件汇总
-list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_FILE_FILES})
-
-#**********************************************
-#算法库设置
-#**********************************************
-add_subdirectory(src/ptcat/palgorithm)
+add_subdirectory(src/ptcat/algorithm)
 #将头文件与 cpp 文件汇总
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_ALGO_DIR})
 list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_ALGO_FILES})
@@ -214,9 +200,9 @@ endif ()
 ##**********************************************
 ##option(PTCAT_GENERATE_ALL_LIBRARY "build all libraries" OFF)
 ##如果不生成总库，对应库生成， 对应库我发现只会生成最后面一个，去除该功能
-##option(PTCAT_THREADPOOL_LIBRARY "build pthreadpool libraries" ON)#线程池库
+##option(PTCAT_THREADPOOL_LIBRARY "build threadpool libraries" ON)#线程池库
 ##option(PTCAT_LOGWRITER_LIBRARY "build plogwriter libraries" ON)#日志库
-##option(PTCAT_CLOCK_LIBRARY "build pclock libraries" ON)#时间库
+##option(PTCAT_CLOCK_LIBRARY "build clock libraries" ON)#时间库
 #
 ##**********************************************
 ##头文件和源文件集合
@@ -235,7 +221,7 @@ endif ()
 ##**********************************************
 ##设置线程池前头文件地址和源文件地址，并且获得所有的头文件和源文件
 #
-#add_subdirectory(src/pthreadpool)#在 pthreadpool 的 cmake 文件中定义文件地址
+#add_subdirectory(src/threadpool)#在 threadpool 的 cmake 文件中定义文件地址
 ##将头文件与 cpp 文件添加至 PTCAT_H_ALL_DIRS 与 PTCAT_CPP_ALL_FILES 存储起来
 ##第一行的数据不需要加上间隔符
 ##string(APPEND PTCAT_H_ALL_DIRS "" ${PTCAT_H_TPOOL_DIR})
@@ -263,7 +249,7 @@ endif ()
 ##set(PTCAT_CPP_DATETIME_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/pdatetime/src")
 ##获取到所有在 PTCAT_CPP_DATETIME_DIR 中的 cpp 文件保存到变量 PTCAT_CPP_DATETIME_FILES 中
 ##aux_source_directory(${PTCAT_CPP_DATETIME_DIR} PTCAT_CPP_DATETIME_FILES)
-#add_subdirectory(src/pclock)
+#add_subdirectory(src/clock)
 ##将头文件与 cpp 文件汇总
 ##[[
 #string(APPEND PTCAT_CPP_ALL_FILES ";" ${PTCAT_CPP_DATETIME_FILES})
@@ -317,8 +303,8 @@ endif ()
 ##    set(PTCAT_LIB_PROJECT_NAMES "")
 ##    #单独编译线程池库
 ##    if (PTCAT_THREADPOOL_LIBRARY)
-##        add_subdirectory(src/pthreadpool)
-##        string(APPEND PTCAT_LIB_PROJECT_NAMES "" src/pthreadpool)
+##        add_subdirectory(src/threadpool)
+##        string(APPEND PTCAT_LIB_PROJECT_NAMES "" src/threadpool)
 ##    endif ()
 ##    #单独编译日志库
 ##    if (PTCAT_LOGWRITER_LIBRARY)
@@ -327,8 +313,8 @@ endif ()
 ##    endif ()
 ##    #单独编译时间库
 ##    if (PTCAT_CLOCK_LIBRARY)
-##        add_subdirectory(src/pclock)
-##        string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/pclock)
+##        add_subdirectory(src/clock)
+##        string(APPEND PTCAT_LIB_PROJECT_NAMES ";" src/clock)
 ##    endif ()
 ##endif ()
 #

@@ -9,7 +9,6 @@
 
 #ifndef COMMON_H
 #define COMMON_H
-#include <chrono>
 
 
 //***************************************************
@@ -37,23 +36,8 @@
 
 
 namespace ptcat {
-    //***************************************************
-    //时钟定义
-    //***************************************************
-    namespace PChrono = std::chrono;
-    typedef PChrono::steady_clock PSteadyClock;//单调时钟
-    typedef PChrono::high_resolution_clock PHighClock;//高性能时钟
-    typedef PChrono::system_clock PSystemClock;//系统时钟
-
-    //***************************************************
-    //类型定义
-    //***************************************************
-    typedef long long PLLONG;//长整形
-
-    enum ResultErrorCode {
-        IndexNotFound = -99999,//索引未被发现
-        KeyNotFound,//键未被发现
-    };
+    typedef long long llong;
+    typedef unsigned int uint;
 
 }
 
