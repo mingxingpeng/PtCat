@@ -38,6 +38,7 @@
 namespace ptcat {
     typedef long long llong;
     typedef unsigned int uint;
+    typedef unsigned char uchar;
 
 }
 
