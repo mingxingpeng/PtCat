@@ -7,14 +7,15 @@
 
 #include "ptcat/common/common.h"
 #include <memory>
+#include "ptcat/common/cat.hpp"
 
 namespace ptcat{
     namespace palgo{//算法命名空间
         //中值滤波
-        DLL_API void MediaFilter(double* data, int height, int width, int kernel);
+        DLL_API void MediaFilter(Cat<double>& data, int kernel);
 
         //中值滤波
-        DLL_API void MediaFilter(float* data, int height, int width, int kernel);
+        DLL_API void MediaFilter(Cat<float>& data, int kernel);
 
         //高斯滤波
         DLL_API void GaussianFilter(double* data, int height, int width, int kernel);
@@ -28,21 +29,21 @@ namespace ptcat{
         //高斯滤波
         DLL_API void GaussianFilter(float* data, float* out, int height, int width, int kernel);
 
-        DLL_API std::pair<int, std::shared_ptr<const double[]>> GetLogKernel(double sigma, int kernel_size = 0);
+        DLL_API Cat<double> GetLogKernel(double sigma, int kernel_size = 0);
 
-        DLL_API std::pair<int, std::shared_ptr<const float[]>> GetLogKernel(float sigma, int kernel_size = 0);
-
-        //高斯拉普拉斯滤波
-        DLL_API void LaplacianOfGaussianFilter(double* data, double* out, int height, int width, double sigma, int kernel = 0);
+        DLL_API Cat<float> GetLogKernel(float sigma, int kernel_size = 0);
 
         //高斯拉普拉斯滤波
-        DLL_API void LaplacianOfGaussianFilter(float* data, float* out, int height, int width, float sigma, int kernel = 0);
+        DLL_API void LaplacianOfGaussianFilter(const Cat<double>& data, Cat<double>& out, double sigma, int kernel = 0);
 
         //高斯拉普拉斯滤波
-        DLL_API void LaplacianOfGaussianFilter(unsigned char* data, double* out, int height, int width, double sigma, int kernel = 0);
+        DLL_API void LaplacianOfGaussianFilter(const Cat<float>& data, Cat<float>& out, float sigma, int kernel = 0);
 
         //高斯拉普拉斯滤波
-        DLL_API void LaplacianOfGaussianFilter(unsigned char* data, float* out, int height, int width, float sigma, int kernel = 0);
+        DLL_API void LaplacianOfGaussianFilter(const Cat<uchar>& data, Cat<double>& out, double sigma, int kernel = 0);
+
+        //高斯拉普拉斯滤波
+        DLL_API void LaplacianOfGaussianFilter(const Cat<uchar>& data, Cat<float>& out, float sigma, int kernel = 0);
 
 //        void Filter2D(double* data, double* out, );
 

@@ -8,23 +8,31 @@
 namespace ptcat {
     namespace palgo {//算法命名空间
         //快速选择
-        float QuickSelect(float* arr, int count, int k_index){
-            return quicksel::QuickSelect(arr, count, k_index);
+        float QuickSelect(ptcat::Cat1D<float> arr, int k_index){
+            float* ptr = arr.Data();
+            int count = arr.Cols();
+            return quicksel::QuickSelect(ptr, count, k_index);
         }
 
         //快速选择
-        double QuickSelect(double* arr, int count, int k_index){
-            return quicksel::QuickSelect(arr, count, k_index);
+        double QuickSelect(ptcat::Cat1D<double> arr, int k_index){
+            double* ptr = arr.Data();
+            int count = arr.Cols();
+            return quicksel::QuickSelect(ptr, count, k_index);
         }
 
         //中位数获取
-        float GetMedianElement(float* values, int count){
-            return quicksel::GetMedianElement(values, count);
+        float GetMedianElement(ptcat::Cat1D<float> values){
+            float* ptr = values.Data();
+            int count = values.Cols();
+            return quicksel::GetMedianElement(ptr, count);
         }
 
         //中位数获取
-        double GetMedianElement(double* values, int count){
-            return quicksel::GetMedianElement(values, count);
+        double GetMedianElement(ptcat::Cat1D<double> values){
+            double* ptr = values.Data();
+            int count = values.Cols();
+            return quicksel::GetMedianElement(ptr, count);
         }
 
     }

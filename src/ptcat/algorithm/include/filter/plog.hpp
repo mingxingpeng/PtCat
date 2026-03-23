@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <shared_mutex>
 #include "pmath.hpp"
+#include "ptcat/common/cat.hpp"
 
 namespace ptcat {
     namespace palgo {//算法命名空间
@@ -70,11 +71,11 @@ namespace ptcat {
             //log 核类
             class LOGKernel final{
             private:
-                std::unordered_map<LOGKey, std::shared_ptr<const double[]>, LOGKeyHash> log_kernels_;//用于存储 log 核
+                std::unordered_map<LOGKey, Cat<double>, LOGKeyHash> log_kernels_;//用于存储 log 核
                 std::shared_mutex mux_;//共享锁
 
                 //计算 log 核
-                std::shared_ptr<const double[]> CalcLogKernel(const LOGKey& log_key){
+                Cat<double> CalcLogKernel(const LOGKey& log_key){
                     const double& sigma = log_key.sigma;
                     const int& kernel_size = log_key.kernel_size;
                     //获取到核的一半
@@ -85,9 +86,13 @@ namespace ptcat {
                     double sum = 0.0;
                     int kernel_len = kernel_size * kernel_size;
                     //核结果保存
-                    std::shared_ptr<double[]> kernel(new double[kernel_len]);
+                    Cat<double> kernel(kernel_size, kernel_size);
+
                     double pi_sigma4_inv = 1.0 / (P_PI * sigma4);
                     double sigma2_inv = 1.0 / (2 * sigma2);
+
+                    //直接对指针进行操作
+                    double* kernel_ptr = kernel.Data();
 
                     for (int i = 0; i < kernel_size; ++i) {
                         for (int j = 0; j < kernel_size; ++j) {
@@ -96,7 +101,7 @@ namespace ptcat {
                             double r2 = x * x + y * y;
                             double value = -1.0 * pi_sigma4_inv * (1.0 - r2 * sigma2_inv) * exp(-r2 * sigma2_inv);
                             int index = i * kernel_size + j;//计算一下索引值
-                            kernel[index] = value;
+                            kernel_ptr[index] = value;
                             sum += value;
                         }
                     }
@@ -104,7 +109,7 @@ namespace ptcat {
                     if (std::abs(sum) > EPSILON) {
                         double mean = sum / kernel_len;
                         for (int i = 0; i < kernel_len; ++i)
-                            kernel[i] -= mean;
+                            kernel_ptr[i] -= mean;
                     }
                     //将获取到的核给存储下来
                     return kernel;
@@ -132,7 +137,7 @@ namespace ptcat {
                         kernel_size += 1;
                 }
 
-                std::shared_ptr<const double[]> Get(double sigma, int& kernel_size){
+                Cat<double> Get(double sigma, int kernel_size){
                     CoorectKernelSize(sigma, kernel_size);
 
                     LOGKey log_key(kernel_size, sigma);
@@ -169,22 +174,24 @@ namespace ptcat {
 
             //对于 log 核，只允许 double 和 float 类型
             //对外开放 log 核：
-            inline std::pair<int, std::shared_ptr<const double[]>> GetLogKernel(double sigma, int kernel_size = 0){
-                auto& log_instance = GetLOG();
-                auto kernel = log_instance.Get(sigma, kernel_size);
-                return std::make_pair(kernel_size, kernel);
+            inline Cat<double> GetLogKernel(double sigma, int kernel_size = 0){
+                return GetLOG().Get(sigma, kernel_size);
             }
 
             //对外开放 log 核：
-            inline std::pair<int, std::shared_ptr<const float[]>> GetLogKernel(float sigma, int kernel_size = 0){
+            inline Cat<float> GetLogKernel(float sigma, int kernel_size = 0){
                 auto& log_instance = GetLOG();
                 auto kernel = log_instance.Get(sigma, kernel_size);
-                int kernel_len = kernel_size * kernel_size;
-                std::shared_ptr<float[]> f_kernel(new float[kernel_len]);
+                int cols = kernel.Cols();
+                int rows = kernel.Rows();
+                int kernel_len = cols * rows;
+                Cat<float> f_kernel(rows, cols);
+                double* kernel_ptr = kernel.Data();
+                float* f_kernel_ptr = f_kernel.Data();
                 for (int i = 0; i < kernel_len; ++i) {
-                    f_kernel[i] = static_cast<float>(kernel[i]);
+                    f_kernel_ptr[i] = static_cast<float>(kernel_ptr[i]);
                 }
-                return std::make_pair(kernel_size, f_kernel);
+                return f_kernel;
             }
 
 
@@ -193,12 +200,15 @@ namespace ptcat {
             inline
             typename std::enable_if<(std::is_same_v<IN, float> || std::is_same_v<IN, double> || std::is_same_v<IN, unsigned char>) &&
                             (std::is_same_v<OUT, float> || std::is_same_v<OUT, double>)>::type
-            LaplacianOfGaussianFilter(IN* data, OUT* out, int height, int width, double sigma, int kernel_size = 0){
+            LaplacianOfGaussianFilter(const IN* data, OUT* out, int height, int width, double sigma, int kernel_size = 0){
                 if (!data || !out || height <= 0 || width <= 0 || kernel_size < 0) throw std::invalid_argument("invalid parameter");
 
                 auto& log_instance = GetLOG();
                 //查看一下当前核
                 auto kernel = log_instance.Get(sigma, kernel_size);
+                //获取到核指针
+                auto kernel_data = kernel.Data();
+                kernel_size = kernel.Rows();//这里是可以确认核宽高是一致的
 
                 int radius = kernel_size / 2;//获取到核半径
 
@@ -207,7 +217,7 @@ namespace ptcat {
                 int kernel_len = kernel_size * kernel_size;
                 OUT* kernel_ptr = mp.template Allocate<OUT>(kernel_len);
                 for (int i = 0; i < kernel_len; ++i) {
-                    kernel_ptr[i] = static_cast<OUT>(kernel[i]);
+                    kernel_ptr[i] = static_cast<OUT>(kernel_data[i]);
                 }
 
                 //遍历每一个图像
@@ -222,7 +232,7 @@ namespace ptcat {
                         //对于非边缘区域，不需要对 ny 和 nx 进行限制
                         if (h >= radius && h < height - radius && w >= radius && w < width - radius){
                             for (int ky = -radius; ky <= radius; ++ky) {
-                                IN* data_ptr = &data[(h + ky) * width + (w - radius)];
+                                const IN* data_ptr = &data[(h + ky) * width + (w - radius)];
                                 OUT* k_ptr = &kernel_ptr[(ky + radius) * kernel_size];
                                 for (int kx = 0; kx < kernel_size; ++kx) {
                                     sum += data_ptr[kx] * k_ptr[kx];
