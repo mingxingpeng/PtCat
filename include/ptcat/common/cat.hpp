@@ -7,10 +7,10 @@
 
 #include "ptcat/common/common.h"
 #include <iostream>
-
 #include <atomic>
-namespace ptcat {
 
+
+namespace ptcat {
     template <typename T>
     //ÈÝÆ÷Àà
     class CatBase {

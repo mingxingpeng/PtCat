@@ -11,7 +11,7 @@
 #endif
 #include <unordered_map>
 #include <shared_mutex>
-#include "pmath.hpp"
+#include "ptcat/pmath.hpp"
 #include "ptcat/common/cat.hpp"
 
 namespace ptcat {
