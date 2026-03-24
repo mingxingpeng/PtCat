@@ -17,4 +17,6 @@
 
 #include "ptcat/select/pselect.h"
 
+#include "ptcat/common/cat.hpp"
+
 #endif //PTCAT_PALGOCORE_H

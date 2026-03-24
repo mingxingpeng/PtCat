@@ -5,7 +5,7 @@
 #ifndef PTCAT_PGAUSSIAN_H
 #define PTCAT_PGAUSSIAN_H
 
-#include "pmemorypool.hpp"
+#include "../pmemorypool.hpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif

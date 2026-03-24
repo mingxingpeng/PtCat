@@ -5,7 +5,7 @@
 #ifndef PTCAT_PLOG_HPP
 #define PTCAT_PLOG_HPP
 
-#include "pmemorypool.hpp"
+#include "../pmemorypool.hpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -23,7 +23,7 @@ namespace ptcat {
         bool is_external_data = false;//用于判断是不是外部数据
 
         virtual ~CatBase(){
-            Clear();
+            this->Clear();
         }
 
         void SetDefault(){
@@ -134,7 +134,7 @@ namespace ptcat {
                         delete this->ref_count_;
                     }
             }
-            SetDefault();
+            this->SetDefault();
         }
     };
 
@@ -145,7 +145,7 @@ namespace ptcat {
 
     public:
         Cat(){
-            SetDefault();
+            this->SetDefault();
         }
 
         //使用外部数据
@@ -172,26 +172,26 @@ namespace ptcat {
         }
 
         Cat(const Cat<T>& cat){//拷贝构造器
-            CopyWith(cat);
+            this->CopyWith(cat);
         }
 
         Cat<T>& operator=(const Cat<T>& cat){
             if (&cat == this) return *this;
             //释放当前资源
-            Clear();
-            CopyWith(cat);
+            this->Clear();
+            this->CopyWith(cat);
             return *this;
         }
 
         Cat(Cat<T>&& cat) noexcept{
-            MoveWith(std::move(cat));
+            this->MoveWith(std::move(cat));
         }
 
         Cat<T>& operator=(Cat<T>&& cat) noexcept{
             if (&cat == this) return *this;
             //释放当前资源
-            Clear();
-            MoveWith(std::move(cat));
+            this->Clear();
+            this->MoveWith(std::move(cat));
             return *this;
         }
     };
@@ -203,7 +203,7 @@ namespace ptcat {
 
     public:
         Cat1D(){
-            SetDefault();
+            this->SetDefault();
         }
 
         //使用外部数据
@@ -230,27 +230,27 @@ namespace ptcat {
         }
 
         Cat1D(const Cat1D<T>& cat){//拷贝构造器
-            CopyWith(cat);
+            this->CopyWith(cat);
         }
 
         Cat1D<T>& operator=(const Cat1D<T>& cat){
             if (&cat == this) return *this;
             //这里可能会面临指针数据一样的情况，那么下面就会删除对应指针数据，会导致问题，但是一般不太可能会出现，以后在改 pmx
             //释放当前资源
-            Clear();
-            CopyWith(cat);
+            this->Clear();
+            this->CopyWith(cat);
             return *this;
         }
 
         Cat1D(Cat1D<T>&& cat) noexcept{
-            MoveWith(std::move(cat));
+            this->MoveWith(std::move(cat));
         }
 
         Cat1D<T>& operator=(Cat1D<T>&& cat) noexcept{
             if (&cat == this) return *this;
             //释放当前资源
-            Clear();
-            MoveWith(std::move(cat));
+            this->Clear();
+            this->MoveWith(std::move(cat));
             return *this;
         }
     };

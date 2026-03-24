@@ -1,6 +1,7 @@
 #include <ptcat/common/cat.hpp>
 #include <iostream>
 #include "ptcat/filter/pfilter.h"
+#include "ptcat/utils/clock/pstopwatch.h"
 
 int main(){
 //    ptcat::Cat<double> cat(10, 10);
@@ -19,10 +20,23 @@ int main(){
 
 //    ptcat::Cat<double> cat = ptcat::Cat<double>(10, 10);
 
-    double sigma = 1;
-    auto cat = ptcat::palgo::GetLogKernel(sigma);
-    auto cat1 = ptcat::palgo::GetLogKernel(sigma);
-    auto cat2 = ptcat::palgo::GetLogKernel(sigma);
-    auto cat3 = ptcat::palgo::GetLogKernel(sigma);
+//    double sigma = 1;
+//    auto cat = ptcat::palgo::GetLogKernel(sigma);
+//    auto cat1 = ptcat::palgo::GetLogKernel(sigma);
+//    auto cat2 = ptcat::palgo::GetLogKernel(sigma);
+//    auto cat3 = ptcat::palgo::GetLogKernel(sigma);
+
+//    ptcat::clock::StopWatch sw;
+//    sw.Start();
+//    ptcat::palgo::fft::PFFT fft;
+//    ptcat::palgo::fft::Range range(30, 40);
+//    fft.PFFTInit(1000, range, true);
+//    fft.PFFTDeInit();
+//    fft.PFFTInit(1000, range);
+////    ptcat::palgo::fft::Range range1(10, 40);
+////    fft.PFFTInit(1000, range1);
+//    sw.Stop();
+//    std::cout << "time: " << sw.MilliElapsedTime() << std::endl;
+
     return 0;
 }

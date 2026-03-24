@@ -6,7 +6,7 @@
 #define PTCAT_PMEDIAN_HPP
 
 #include "../select/pquicksel.hpp"
-#include "pmemorypool.hpp"
+#include "../pmemorypool.hpp"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
