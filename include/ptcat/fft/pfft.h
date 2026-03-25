@@ -48,9 +48,10 @@ namespace ptcat{
                 }
             };
 
-            class PFFT{
+            class DLL_API PFFT{
             protected:
-                ComplexD* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1
+//                ComplexD* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1
+                double* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
                 int ft_size_;//数据长度
                 Range range_;//传入进来得数据范围, 数据索引从 0 开始
                 int range_size_;
@@ -59,8 +60,6 @@ namespace ptcat{
                 double* least_squares_sum_x_;//最小二乘计算
                 int least_squares_size_;
                 int N_;//数据数量
-                ComplexD* frequency_;//生成的频域数据
-                int frequency_size_;
 
             public:
                 PFFT();
@@ -72,31 +71,33 @@ namespace ptcat{
 
                 //释放资源
                 void PFFTDeInit();
-
+            protected:
                 //创建傅里叶变换计划
-                void ExecutePFTPlan(const double* input) ;
+                void ExecutePFTPlan(const double* input, double*& frequency) ;
 
                 // SIMD 加速傅里叶变换
-                void ExecutePFTPlanAVX(const double* input) ;
+                void ExecutePFTPlanAVX(const double* input, double*& frequency) ;
 
                 //创建逆傅里叶变换计划, 做全谱的操作
-                void ExecutePIFTPlan(double*& out) ;
+                void ExecutePIFTPlan(double*& out, double*& frequency) ;
+
+                void FreeFrequency(double*& frequency);
             };
 
             class DLL_API PFFTN final : public fft::PFFT{
-
+            public:
                 //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
-                void PFFTRun(int N, const fft::Range& range, const double* input, double*& output, bool is_full_spectrum = false);
+                void PFFTRun(const double* input, double*& output);
 
                 //获取到振幅， 相位，幅度，这里必须全谱
-                void PFFTRun(int N, const fft::Range& range, const double* input, double*& output, double*& amplitudes,  double*& phases);
+                void PFFTRun(const Range& calc_range, const double* input, double*& output, double*& amplitudes,  double*& phases);
 
 
                 /// <summary>
                 /// 根据相位来求得数据高度，相位的斜率与包络图高度是成正比的，看相位获取的高度是否比包络图效果好
                 /// 返回斜率
                 /// </summary>
-                void PFFTPhaseRun(int N, const fft::Range& range, const double* input, double& k, double& b, bool is_full_spectrum = false);
+                void PFFTPhaseRun(const double* input, double& k, double& b);
             };
         }
     }
