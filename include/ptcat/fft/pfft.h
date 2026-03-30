@@ -71,7 +71,7 @@ namespace ptcat{
 
                 //释放资源
                 void PFFTDeInit();
-            protected:
+
                 //创建傅里叶变换计划
                 void ExecutePFTPlan(const double* input, double*& frequency) ;
 

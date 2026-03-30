@@ -5,6 +5,7 @@
 #include "ptcat/filter/pfilter.h"
 #include "filter/pmedian.hpp"
 #include "filter/plog.hpp"
+#include "filter/pleastsquares.hpp"
 
 namespace ptcat{
     namespace palgo{//Ëã·¨ÃüÃû¿Õ¼ä
@@ -107,5 +108,14 @@ namespace ptcat{
             float* out_ptr = out.Data();
             log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
         }
+
+        void LeastSquaresLinearFiter(const Cat1D<double> x_arr, const Cat1D<double> y_arr, double& k, double& b){
+            leastsquares::LeastSquaresLinearFiter(x_arr.Data(), x_arr.Cols(), y_arr.Data(), y_arr.Cols(), k, b);
+        }
+
+        void LeastSquaresLinearFiter(const Cat1D<float> x_arr, const Cat1D<float> y_arr, float& k, float& b){
+            leastsquares::LeastSquaresLinearFiter(x_arr.Data(), x_arr.Cols(), y_arr.Data(), y_arr.Cols(), k, b);
+        }
+
     }
 }
