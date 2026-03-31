@@ -28,7 +28,7 @@
 namespace ptcat{
     namespace palgo{//算法命名空间
         namespace fft{
-
+            //频域排序使用的是 标准排序方式
             struct Range{
                 int start;
                 int end;
@@ -71,6 +71,8 @@ namespace ptcat{
 
                 //释放资源
                 void PFFTDeInit();
+
+                void GenerateFrequency(double*& frequency, int& fre_len);
 
                 //创建傅里叶变换计划
                 void ExecutePFTPlan(const double* input, double*& frequency) ;

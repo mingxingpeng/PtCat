@@ -148,10 +148,13 @@ namespace ptcat {
                 }
             }
 
+            void PFFT::GenerateFrequency(double*& frequency, int& fre_len){
+                fre_len = range_size_ * 2;
+                frequency = MPool.Allocate<double>(fre_len);
+            }
+
             //创建傅里叶变换计划
             void PFFT::ExecutePFTPlan(const double* input, double*& frequency) {
-                int fre_size = range_size_ * 2;
-                frequency = MPool.Allocate<double>(fre_size);
                 //计算出频域数据，只计算范围内的频域数据,其他都为 0，对于接下来的计算没有意义
 //#pragma omp parallel for//实行批量计算
                 int N2 = N_ * 2;
@@ -173,8 +176,6 @@ namespace ptcat {
 
             // SIMD 加速傅里叶变换
             void PFFT::ExecutePFTPlanAVX(const double* input, double*& frequency) {
-                int fre_size = range_size_ * 2;
-                frequency = MPool.Allocate<double>(fre_size);
                 const int step = 4; // 每次处理 4 个 double（256 bit）
                 const int step2 = 2 * step; // 每次处理 4 个 double（256 bit）
 //#pragma omp parallel for//实行批量计算
@@ -263,6 +264,8 @@ namespace ptcat {
             //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
             void PFFTN::PFFTRun(const double* input, double*& output) {
                 double* frequency = nullptr;
+                int fre_len = 0;
+                GenerateFrequency(frequency, fre_len);
                 ExecutePFTPlanAVX(input, frequency);
                 ExecutePIFTPlan(output, frequency);
                 FreeFrequency(frequency);
@@ -272,6 +275,8 @@ namespace ptcat {
             //幅度可能只需要特定频段的信息, 传输入特定谱段的信息
             void PFFTN::PFFTRun(const Range& calc_range, const double* input, double*& output, double*& amplitudes,  double*& phases) {
                 double* frequency = nullptr;
+                int fre_len = 0;
+                GenerateFrequency(frequency, fre_len);
                 ExecutePFTPlanAVX(input, frequency);//获取到全谱频域
 
                 //计算出对应的数据
@@ -319,6 +324,8 @@ namespace ptcat {
             /// </summary>
             void PFFTN::PFFTPhaseRun(const double* input, double& k, double& b) {
                 double* frequency = nullptr;
+                int fre_len = 0;
+                GenerateFrequency(frequency, fre_len);
                 //计算出频域数据，只计算范围内的频域数据,其他都为 0，对于接下来的计算没有意义，所以直接只计算范围内的频域数据，免得后续手动置零了
                 ExecutePFTPlanAVX(input, frequency);
                 //根据这段范围内的频域数据，因为我只取对应范围内的数据， 获取到相位数据，
