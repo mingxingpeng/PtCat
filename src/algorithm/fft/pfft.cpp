@@ -44,8 +44,10 @@ namespace ptcat {
             static PMemoryPool& MPool = GetMP();
 
             PFFT::PFFT() : is_full_spectrum_(false),
-                           range_({0, 0}),
-                           range_size_(0),
+                           variable_range_({0, 0}),
+                           variable_range_size_(0),
+                           init_range_({0, 0}),
+                           init_range_size_(0),
                            ft_tri_(nullptr),
                            ft_size_(0),
                            least_squares_sum_x_(nullptr),
@@ -62,23 +64,26 @@ namespace ptcat {
             void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum) {
                 //为类变量赋值
                 if (N <= 0) throw std::invalid_argument("invalid argument");
-                bool is_same = (N_ == N) && (range_ == range);
+                bool is_same = (N_ == N) && (init_range_ == range) && (is_full_spectrum_ == is_full_spectrum);
                 N_ = N;
-                range_ = range;
+                variable_range_ = range;
+                init_range_ = range;
+
+                //查看是否使用全谱
                 is_full_spectrum_ = is_full_spectrum;
-                if (is_full_spectrum_){//如果使用全谱就设置下 range 得值
-                    range_.start = 0;
-                    range_.end = N_ - 1;
+                if (is_full_spectrum_){//如果使用全谱就设置下 variable_range_ 的值
+                    variable_range_.start = 0;
+                    variable_range_.end = N_ - 1;
                 }
 
                 //计算指定区域得傅里叶变换复数，或者全局傅里叶变换复数，也就是说是否计算全谱傅里叶变换得复数
-                range_size_ = range_.end - range_.start + 1;
+                variable_range_size_ = variable_range_.end - variable_range_.start + 1;
+                init_range_size_ = init_range_.end - init_range_.start + 1;
                 int N2 = N_ * 2;
-                int ft_size = range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
+                int ft_size = variable_range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
                 //首先先判断一下是否需要修改数据获取内存
                 if (!ft_tri_ || ft_size_ != ft_size || !is_same) {//判断下数据是否一致
                     //调用内存池对数据进行获取
-
                     if (ft_tri_)
                         MPool.DeAllocate(ft_tri_, ft_size_);//删除上一个数据得数据长度
                     ft_size_ = ft_size;//然后才更新当前数据的长度，并申请内存
@@ -87,9 +92,9 @@ namespace ptcat {
                     double N_dif = 1.0 / N_;
                     //进行并行运算
 #pragma omp parallel for
-                    for (int i = 0; i < range_size_; i++)
+                    for (int i = 0; i < variable_range_size_; i++)
                     {
-                        int k = range_.start + i;
+                        int k = variable_range_.start + i;
                         //计算一下数据的位置
                         double* curr_ft_tri = &(ft_tri_[i * N2]);
                         for (int n = 0, index = 0; n < N_; n++, index += 2)
@@ -103,10 +108,10 @@ namespace ptcat {
                     }
 
                     //least_squares_sum_x_
-                    if (!least_squares_sum_x_ || range_size_ != least_squares_size_){
+                    if (!least_squares_sum_x_ || variable_range_size_ != least_squares_size_){
                         if (least_squares_sum_x_)
                             MPool.DeAllocate(least_squares_sum_x_, least_squares_size_);
-                        least_squares_size_ = range_size_;
+                        least_squares_size_ = variable_range_size_;
                         least_squares_sum_x_ = MPool.Allocate<double>(least_squares_size_);
                     }
                     //得到平均值
@@ -149,7 +154,7 @@ namespace ptcat {
             }
 
             void PFFT::GenerateFrequency(double*& frequency, int& fre_len){
-                fre_len = range_size_ * 2;
+                fre_len = variable_range_size_ * 2;
                 frequency = MPool.Allocate<double>(fre_len);
             }
 
@@ -158,7 +163,7 @@ namespace ptcat {
                 //计算出频域数据，只计算范围内的频域数据,其他都为 0，对于接下来的计算没有意义
 //#pragma omp parallel for//实行批量计算
                 int N2 = N_ * 2;
-                for (int i = 0, fre_i = 0; i < range_size_; i++, fre_i += 2)
+                for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                 {
                     double sum_real = 0;
                     double sum_imag = 0;
@@ -180,7 +185,7 @@ namespace ptcat {
                 const int step2 = 2 * step; // 每次处理 4 个 double（256 bit）
 //#pragma omp parallel for//实行批量计算
                 int N2 = N_ * 2;
-                for (int i = 0, fre_i = 0; i < range_size_; ++i, fre_i += 2) {
+                for (int i = 0, fre_i = 0; i < variable_range_size_; ++i, fre_i += 2) {
                     __m256d sum_real = _mm256_setzero_pd();
                     __m256d sum_imag = _mm256_setzero_pd();
 
@@ -237,7 +242,7 @@ namespace ptcat {
                 {
                     double sum_real = 0;
                     double sum_imag = 0;
-                    for (int i = 0, fre_i = 0; i < range_size_; i++, fre_i += 2)
+                    for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                     {
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
@@ -255,7 +260,7 @@ namespace ptcat {
 
             void PFFT::FreeFrequency(double*& frequency){
                 if (frequency){
-                    MPool.DeAllocate(frequency, range_size_ * 2);
+                    MPool.DeAllocate(frequency, variable_range_size_ * 2);
                 }
             }
 
@@ -273,7 +278,9 @@ namespace ptcat {
 
             //相位和振幅通常需要全谱信息
             //幅度可能只需要特定频段的信息, 传输入特定谱段的信息
-            void PFFTN::PFFTRun(const Range& calc_range, const double* input, double*& output, double*& amplitudes,  double*& phases) {
+            void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases) {
+                //判断下是不是全谱
+                if (!is_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
                 double* frequency = nullptr;
                 int fre_len = 0;
                 GenerateFrequency(frequency, fre_len);
@@ -281,7 +288,6 @@ namespace ptcat {
 
                 //计算出对应的数据
                 const double N_inv = 1.0 / N_;
-                int range_size = calc_range.end - calc_range.start + 1;//获取到需要计算的频域范围
                 int N2 = 2 * N_;
 //#pragma omp parallel for
                 for (int n = 0, fre_i = 0; n < N_; n++, fre_i += 2)
@@ -298,9 +304,9 @@ namespace ptcat {
                     //计算幅度， 幅度使用计算范围 calc_range
                     double sum_real = 0;
                     double sum_imag = 0;
-                    for (int i = 0; i < range_size; i++)
+                    for (int i = 0; i < init_range_size_; i++)
                     {
-                        int calc_index = calc_range.start + i;
+                        int calc_index = init_range_.start + i;
                         int ft_index = calc_index * N2 + fre_i;
                         int fre_index = calc_index * 2;
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
@@ -329,11 +335,11 @@ namespace ptcat {
                 //计算出频域数据，只计算范围内的频域数据,其他都为 0，对于接下来的计算没有意义，所以直接只计算范围内的频域数据，免得后续手动置零了
                 ExecutePFTPlanAVX(input, frequency);
                 //根据这段范围内的频域数据，因为我只取对应范围内的数据， 获取到相位数据，
-                double* phases = MPool.Allocate<double>(range_size_);//存储振幅数据
+                double* phases = MPool.Allocate<double>(variable_range_size_);//存储振幅数据
                 //振幅计算公式
                 int n = 0;
                 double last_phase = 0;
-                for (int i = 0, fre_i = 0; i < range_size_; i++, fre_i += 2)
+                for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                 {
                     // 计算相位（使用atan2处理四象限）, -- pmx 这里使用 三角函数，可能会有性能消耗，后续优化使用 SIMD
                     phases[i] = std::atan2(frequency[fre_i + 1], frequency[fre_i]); // [-π, π]
@@ -347,30 +353,30 @@ namespace ptcat {
                 //对数据做最小二乘法
                 //计算 Y
                 double Y = 0;
-                for (int i = 0; i < range_size_; i++)
+                for (int i = 0; i < variable_range_size_; i++)
                 {
                     Y += phases[i];
                 }
-                Y /= range_size_;
+                Y /= variable_range_size_;
                 //计算出斜率
                 k = 0;
-                for (int i = 0; i < range_size_; i++)
+                for (int i = 0; i < variable_range_size_; i++)
                 {
                     k += least_squares_sum_x_[i] * (phases[i] - Y);
                 }
 
                 //做一个计算 b 的处理，实际代码中，这里会被注释掉
                 double X = 0;
-                for (int xi = 0; xi < range_size_; xi++)
+                for (int xi = 0; xi < variable_range_size_; xi++)
                 {
                     X += xi;
                 }
-                X /= range_size_;
+                X /= variable_range_size_;
                 b = Y - k * X;
 
                 //释放资源
                 if (phases)
-                    MPool.DeAllocate(phases, range_size_);
+                    MPool.DeAllocate(phases, variable_range_size_);
                 FreeFrequency(frequency);
             }
         }

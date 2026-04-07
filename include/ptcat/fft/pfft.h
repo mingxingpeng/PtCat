@@ -53,8 +53,10 @@ namespace ptcat{
 //                ComplexD* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1
                 double* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
                 int ft_size_;//数据长度
-                Range range_;//传入进来得数据范围, 数据索引从 0 开始
-                int range_size_;
+                Range variable_range_;//传入进如果是全谱会修改的数据范围, 数据索引从 0 开始
+                int variable_range_size_;
+                Range init_range_;//最开始传入进来得数据范围, 数据索引从 0 开始
+                int init_range_size_;
                 //初始化傅里叶变换复数，是否全谱初始化，还是局部初始化
                 bool is_full_spectrum_ = false;//一般来说不推荐全谱，因为我可能要的就是某一个区域得数据，其他区域可以都设置为 0，并没有影响，只有在需要获取振幅，相位等需要用到全谱计算
                 double* least_squares_sum_x_;//最小二乘计算
@@ -92,7 +94,7 @@ namespace ptcat{
                 void PFFTRun(const double* input, double*& output);
 
                 //获取到振幅， 相位，幅度，这里必须全谱
-                void PFFTRun(const Range& calc_range, const double* input, double*& output, double*& amplitudes,  double*& phases);
+                void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases);
 
 
                 /// <summary>
