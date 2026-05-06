@@ -45,10 +45,6 @@ namespace ptcat{
         //高斯拉普拉斯滤波
         DLL_API void LaplacianOfGaussianFilter(const Cat<uchar>& data, Cat<float>& out, float sigma, int kernel = 0);
 
-        DLL_API void LeastSquaresLinearFiter(const Cat1D<double> x_arr, const Cat1D<double> y_arr, double& k, double& b);
-
-        DLL_API void LeastSquaresLinearFiter(const Cat1D<float> x_arr, const Cat1D<float> y_arr, float& k, float& b);
-
 //        void Filter2D(double* data, double* out, );
 
     }

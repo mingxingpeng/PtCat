@@ -5,7 +5,7 @@
 #include "ptcat/filter/pfilter.h"
 #include "filter/pmedian.hpp"
 #include "filter/plog.hpp"
-#include "filter/pleastsquares.hpp"
+
 
 namespace ptcat{
     namespace palgo{//算法命名空间
@@ -15,7 +15,7 @@ namespace ptcat{
             //获取到数据
             double* ptr = data.Data();
             int height = data.Rows(),  width = data.Cols();
-            median::MediaFilter(ptr, height, width, kernel);
+            filter::median::MediaFilter(ptr, height, width, kernel);
         }
 
         //中值滤波
@@ -24,7 +24,7 @@ namespace ptcat{
             //获取到数据
             float* ptr = data.Data();
             int height = data.Rows(),  width = data.Cols();
-            median::MediaFilter(ptr, height, width, kernel);
+            filter::median::MediaFilter(ptr, height, width, kernel);
         }
 
         void GaussianFilter(double* data, int height, int width, int kernel){
@@ -44,11 +44,11 @@ namespace ptcat{
         }
 
         Cat<double> GetLogKernel(double sigma, int kernel_size){
-            return log::GetLogKernel(sigma, kernel_size);
+            return filter::log::GetLogKernel(sigma, kernel_size);
         }
 
         Cat<float> GetLogKernel(float sigma, int kernel_size){
-            return log::GetLogKernel(sigma, kernel_size);
+            return filter::log::GetLogKernel(sigma, kernel_size);
         }
 
         void LaplacianOfGaussianFilter(const Cat<double>& data, Cat<double>& out, double sigma, int kernel){
@@ -62,7 +62,7 @@ namespace ptcat{
             //获取到数据
             const double* data_ptr = data.Data();
             double* out_ptr = out.Data();
-            log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
+            filter::log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
         }
 
         void LaplacianOfGaussianFilter(const Cat<float>& data, Cat<float>& out, float sigma, int kernel){
@@ -76,7 +76,7 @@ namespace ptcat{
             //获取到数据
             const float* data_ptr = data.Data();
             float* out_ptr = out.Data();
-            log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
+            filter::log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
         }
 
         //高斯拉普拉斯滤波
@@ -91,7 +91,7 @@ namespace ptcat{
             //获取到数据
             const uchar* data_ptr = data.Data();
             double* out_ptr = out.Data();
-            log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
+            filter::log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
         }
 
         //高斯拉普拉斯滤波
@@ -106,16 +106,7 @@ namespace ptcat{
             //获取到数据
             const uchar* data_ptr = data.Data();
             float* out_ptr = out.Data();
-            log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
+            filter::log::LaplacianOfGaussianFilter(data_ptr, out_ptr, height, width, sigma, kernel);
         }
-
-        void LeastSquaresLinearFiter(const Cat1D<double> x_arr, const Cat1D<double> y_arr, double& k, double& b){
-            leastsquares::LeastSquaresLinearFiter(x_arr.Data(), x_arr.Cols(), y_arr.Data(), y_arr.Cols(), k, b);
-        }
-
-        void LeastSquaresLinearFiter(const Cat1D<float> x_arr, const Cat1D<float> y_arr, float& k, float& b){
-            leastsquares::LeastSquaresLinearFiter(x_arr.Data(), x_arr.Cols(), y_arr.Data(), y_arr.Cols(), k, b);
-        }
-
     }
 }

@@ -15,12 +15,6 @@ namespace ptcat {
 
         //快速选择
         DLL_API double QuickSelect(ptcat::Cat1D<double> arr, int k_index);
-
-        //中位数获取
-        DLL_API float GetMedianElement(ptcat::Cat1D<float> values);
-
-        //中位数获取
-        DLL_API double GetMedianElement(ptcat::Cat1D<double> values);
     }
 }
 

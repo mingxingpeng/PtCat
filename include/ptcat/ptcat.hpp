@@ -13,6 +13,10 @@
 
 #include "ptcat/filter/pfilter.h"
 
+#include "ptcat/fit/pfit.h"
+
+#include "ptcat/statistics/pstatistics.h"
+
 #include "ptcat/sort/psort.h"
 
 #include "ptcat/select/pselect.h"
