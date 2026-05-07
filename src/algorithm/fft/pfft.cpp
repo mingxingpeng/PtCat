@@ -278,7 +278,7 @@ namespace ptcat {
 
             //相位和振幅通常需要全谱信息
             //幅度可能只需要特定频段的信息, 传输入特定谱段的信息
-            void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases) {
+            void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric) {
                 //判断下是不是全谱
                 if (!is_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
                 double* frequency = nullptr;
@@ -319,6 +319,50 @@ namespace ptcat {
                         sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
                     }
                     output[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
+                }
+                if (reorder_to_symmetric){//之前相位和振幅是标准排序，下面转换为对称排序
+                    double* temp = MPool.Allocate<double>(N_);
+                    int half_N = N_ * 0.5;
+                    memcpy(temp, amplitudes, N_ * sizeof(double));//做数据备份
+                    if (N_ % 2 == 0)//偶数
+                    {
+                        amplitudes[0] = temp[half_N];//Nquist 数据放开头
+                        //DC 数据放在中间
+                        amplitudes[half_N] = temp[0];
+                        //拷贝负频率
+                        memcpy(amplitudes + 1, temp + half_N + 1, (half_N - 1) * sizeof(double));//做数据备份
+                        //拷贝正频率
+                        memcpy(amplitudes + half_N + 1, temp + 1, (half_N - 1) * sizeof(double));//做数据备份
+                    }
+                    else {//奇数
+                        //DC 放中间
+                        amplitudes[half_N] = temp[0];
+                        //拷贝负频率
+                        memcpy(amplitudes, temp + half_N + 1, half_N * sizeof(double));//做数据备份
+                        //拷贝正频率
+                        memcpy(amplitudes + half_N + 1, temp + 1, half_N * sizeof(double));//做数据备份
+                    }
+                    //相位
+                    memcpy(temp, phases, N_ * sizeof(double));//做数据备份
+                    if (N_ % 2 == 0)//偶数
+                    {
+                        phases[0] = temp[half_N];//Nquist 数据放开头
+                        //DC 数据放在中间
+                        phases[half_N] = temp[0];
+                        //拷贝负频率
+                        memcpy(phases + 1, temp + half_N + 1, (half_N - 1) * sizeof(double));//做数据备份
+                        //拷贝正频率
+                        memcpy(phases + half_N + 1, temp + 1, (half_N - 1) * sizeof(double));//做数据备份
+                    }
+                    else {//奇数
+                        //DC 放中间
+                        phases[half_N] = temp[0];
+                        //拷贝负频率
+                        memcpy(phases, temp + half_N + 1, half_N * sizeof(double));//做数据备份
+                        //拷贝正频率
+                        memcpy(phases + half_N + 1, temp + 1, half_N * sizeof(double));//做数据备份
+                    }
+                    MPool.DeAllocate(temp, N_);
                 }
                 FreeFrequency(frequency);
             }

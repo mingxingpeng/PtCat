@@ -94,7 +94,7 @@ namespace ptcat{
                 void PFFTRun(const double* input, double*& output);
 
                 //获取到振幅， 相位，幅度，这里必须全谱
-                void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases);
+                void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric = false);
 
 
                 /// <summary>
