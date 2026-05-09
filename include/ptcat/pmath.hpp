@@ -18,6 +18,10 @@ namespace ptcat{
             double real;
             double imag;
         };
+
+        double Gaussian(double a, double ¦Ì,double sigma){
+            //https://blog.csdn.net/qinglongzhan/article/details/82348153
+        }
     }
 }
 #endif //PTCAT_PMATH_HPP

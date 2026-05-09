@@ -62,6 +62,8 @@ namespace ptcat{
                 double* least_squares_sum_x_;//最小二乘计算
                 int least_squares_size_;
                 int N_;//数据数量
+                double* gaussian_weight_;//高斯峰权重，之前不使用全谱的为硬截断权重（不需要的直接置零， 需要地方保存），而高斯峰是必须要使用全谱
+                bool use_gaussian_weight_ = false;//是否使用高斯权重
 
             public:
                 PFFT();
