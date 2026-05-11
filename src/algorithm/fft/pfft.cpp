@@ -43,42 +43,63 @@ namespace ptcat {
 
             static PMemoryPool& MPool = GetMP();
 
-            PFFT::PFFT() : is_full_spectrum_(false),
+            PFFT::PFFT() : is_use_full_spectrum_(false),
                            variable_range_({0, 0}),
                            variable_range_size_(0),
-                           init_range_({0, 0}),
-                           init_range_size_(0),
+                           envelope_range_({0, 0}),
+                           envelope_range_size_(0),
                            ft_tri_(nullptr),
                            ft_size_(0),
                            least_squares_sum_x_(nullptr),
                            least_squares_size_(0),
-                           N_(0)
-            {
-            }
+                           N_(0),
+                           is_use_gaussian_(false),
+                           gaussian_weight_(nullptr)
+            {}
 
             PFFT::~PFFT(){
                 PFFTDeInit();
             }
 
             //初始化所需资源
-            void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum) {
+            void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian) {
                 //为类变量赋值
                 if (N <= 0) throw std::invalid_argument("invalid argument");
-                bool is_same = (N_ == N) && (init_range_ == range) && (is_full_spectrum_ == is_full_spectrum);
+                bool is_same = (N_ == N) && (envelope_range_ == range)
+                        && (is_use_full_spectrum_ == is_full_spectrum)
+                            && (is_use_gaussian_ == is_gaussian);
                 N_ = N;
                 variable_range_ = range;
-                init_range_ = range;
+                envelope_range_ = range;
 
                 //查看是否使用全谱
-                is_full_spectrum_ = is_full_spectrum;
-                if (is_full_spectrum_){//如果使用全谱就设置下 variable_range_ 的值
+                is_use_full_spectrum_ = is_full_spectrum;
+
+                //判断是否使用高斯，如果使用高斯的话，就一定是全谱
+                is_use_gaussian_ = is_gaussian;
+                GaussianParam gaussian_param;
+
+                if (is_use_gaussian_){
+                    //先计算一下参数值
+                    gaussian_param.a_ = 1.0;
+                    int range_size = envelope_range_.end - envelope_range_.start;
+                    gaussian_param.mu_ = envelope_range_.start + range_size * 0.5;
+                    gaussian_param.sigma_ = range_size;
+                    //高斯模式下，不使用该区域，所以直接将该区域设置为全谱
+                    envelope_range_.start = 0;
+                    envelope_range_.end = N_ - 1;
+                    is_use_full_spectrum_ = true;
+                }
+
+                //如果使用全谱就设置下 variable_range_ 的值
+                if (is_use_full_spectrum_){
                     variable_range_.start = 0;
                     variable_range_.end = N_ - 1;
                 }
 
                 //计算指定区域得傅里叶变换复数，或者全局傅里叶变换复数，也就是说是否计算全谱傅里叶变换得复数
                 variable_range_size_ = variable_range_.end - variable_range_.start + 1;
-                init_range_size_ = init_range_.end - init_range_.start + 1;
+                envelope_range_size_ = envelope_range_.end - envelope_range_.start + 1;
                 int N2 = N_ * 2;
                 int ft_size = variable_range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
                 //首先先判断一下是否需要修改数据获取内存
@@ -137,6 +158,15 @@ namespace ptcat {
                     {
                         least_squares_sum_x_[xi] = (xi - X) * dif_sum_residual;
                     }
+
+                    if (is_use_gaussian_){//在这里直接将 gaussian 相乘到频域数据上， 不用再下面再相乘了
+                        if (gaussian_weight_)
+                            MPool.DeAllocate(gaussian_weight_, variable_range_size_);//删除上一个数据得数据长度
+                        gaussian_weight_ = MPool.Allocate<double>(variable_range_size_);//申请内存
+                        for (int gi = 0; gi < variable_range_size_; ++gi) {
+                            gaussian_weight_[gi] = Gaussian(gi, gaussian_param);
+                        }
+                    }
                 }
             }
 
@@ -150,6 +180,10 @@ namespace ptcat {
                 if (least_squares_sum_x_){
                     MPool.DeAllocate(least_squares_sum_x_, least_squares_size_);
                     least_squares_sum_x_ = nullptr;
+                }
+                if (gaussian_weight_){
+                    MPool.DeAllocate(gaussian_weight_, variable_range_size_);
+                    gaussian_weight_ = nullptr;
                 }
             }
 
@@ -244,6 +278,9 @@ namespace ptcat {
                     double sum_imag = 0;
                     for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                     {
+                        double freq_weight = 1.0;
+                        if (is_use_gaussian_)
+                            freq_weight = gaussian_weight_[i];
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
                         int ft_index = i * N2 + index;
@@ -251,8 +288,8 @@ namespace ptcat {
                         const double& ft_imag = ft_tri_[ft_index + 1];
                         const double& fre_real = frequency[fre_i];
                         const double& fre_imag = frequency[fre_i + 1];
-                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
+                        sum_real += freq_weight * (ft_real * fre_real + ft_imag * fre_imag);
+                        sum_imag += freq_weight * (ft_real * fre_imag - ft_imag * fre_real);
                     }
                     out[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
                 }
@@ -280,7 +317,7 @@ namespace ptcat {
             //幅度可能只需要特定频段的信息, 传输入特定谱段的信息
             void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric) {
                 //判断下是不是全谱
-                if (!is_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
+                if (!is_use_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
                 double* frequency = nullptr;
                 int fre_len = 0;
                 GenerateFrequency(frequency, fre_len);
@@ -304,9 +341,12 @@ namespace ptcat {
                     //计算幅度， 幅度使用计算范围 calc_range
                     double sum_real = 0;
                     double sum_imag = 0;
-                    for (int i = 0; i < init_range_size_; i++)
+                    for (int i = 0; i < envelope_range_size_; i++)
                     {
-                        int calc_index = init_range_.start + i;
+                        double freq_weight = 1.0;
+                        if (is_use_gaussian_)
+                            freq_weight = gaussian_weight_[i];//高斯模式下， envelope_range_size_ 也变成全谱的大小了
+                        int calc_index = envelope_range_.start + i;
                         int ft_index = calc_index * N2 + fre_i;
                         int fre_index = calc_index * 2;
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
@@ -315,8 +355,8 @@ namespace ptcat {
                         const double& ft_imag = ft_tri_[ft_index + 1];
                         const double& fre_real = frequency[fre_index];
                         const double& fre_imag = frequency[fre_index + 1];
-                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
+                        sum_real += freq_weight * (ft_real * fre_real + ft_imag * fre_imag);
+                        sum_imag += freq_weight * (ft_real * fre_imag - ft_imag * fre_real);
                     }
                     output[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
                 }

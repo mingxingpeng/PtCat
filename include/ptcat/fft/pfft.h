@@ -52,26 +52,36 @@ namespace ptcat{
             protected:
 //                ComplexD* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1
                 double* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
-                int ft_size_;//数据长度
-                Range variable_range_;//传入进如果是全谱会修改的数据范围, 数据索引从 0 开始
-                int variable_range_size_;
-                Range init_range_;//最开始传入进来得数据范围, 数据索引从 0 开始
-                int init_range_size_;
-                //初始化傅里叶变换复数，是否全谱初始化，还是局部初始化
-                bool is_full_spectrum_ = false;//一般来说不推荐全谱，因为我可能要的就是某一个区域得数据，其他区域可以都设置为 0，并没有影响，只有在需要获取振幅，相位等需要用到全谱计算
-                double* least_squares_sum_x_;//最小二乘计算
-                int least_squares_size_;
-                int N_;//数据数量
-                double* gaussian_weight_;//高斯峰权重，之前不使用全谱的为硬截断权重（不需要的直接置零， 需要地方保存），而高斯峰是必须要使用全谱
-                bool use_gaussian_weight_ = false;//是否使用高斯权重
 
+                int ft_size_;//数据长度
+
+                Range variable_range_;//传入进如果是全谱会修改的数据范围, 数据索引从 0 开始
+
+                int variable_range_size_;
+
+                Range envelope_range_;//最开始传入进来得数据范围, 数据索引从 0 开始,将其保存下来，不受是否全谱的影响，用于包络计算
+
+                int envelope_range_size_;
+
+                //初始化傅里叶变换复数，是否全谱初始化，还是局部初始化
+                bool is_use_full_spectrum_ = false;//一般来说不推荐全谱，因为我可能要的就是某一个区域得数据，其他区域可以都设置为 0，并没有影响，只有在需要获取振幅，相位等需要用到全谱计算
+
+                double* least_squares_sum_x_;//最小二乘计算
+
+                int least_squares_size_;
+
+                int N_;//数据数量
+
+                bool is_use_gaussian_ = false;//是否使用高斯权重
+
+                double* gaussian_weight_;//高斯权重
             public:
                 PFFT();
 
                 ~PFFT();
 
-                //初始化所需资源
-                void PFFTInit(const int& N, const Range& range, bool is_full_spectrum = false);
+                //初始化所需资源, 如果使用高斯，那么一定是全谱，如果不使用高斯，就看接下来是全谱还是不全谱计算
+                void PFFTInit(const int& N, const Range& range, bool is_full_spectrum = false, bool is_gaussian = false);
 
                 //释放资源
                 void PFFTDeInit();
