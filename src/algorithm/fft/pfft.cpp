@@ -62,7 +62,7 @@ namespace ptcat {
             }
 
             //初始化所需资源
-            void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian) {
+            void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian, int sigma) {
                 //为类变量赋值
                 if (N <= 0) throw std::invalid_argument("invalid argument");
                 bool is_same = (N_ == N) && (envelope_range_ == range)
@@ -82,9 +82,9 @@ namespace ptcat {
                 if (is_use_gaussian_){
                     //先计算一下参数值
                     gaussian_param.a_ = 1.0;
-                    int range_size = envelope_range_.end - envelope_range_.start;
-                    gaussian_param.mu_ = envelope_range_.start + range_size * 0.5;
-                    gaussian_param.sigma_ = range_size;
+                    int range_size = (envelope_range_.end - envelope_range_.start) * 0.5;
+                    gaussian_param.mu_ = envelope_range_.start + range_size ;
+                    gaussian_param.sigma_ = sigma;
                     //高斯模式下，不使用该区域，所以直接将该区域设置为全谱
                     envelope_range_.start = 0;
                     envelope_range_.end = N_ - 1;
@@ -208,6 +208,7 @@ namespace ptcat {
                         sum_real += curr_ft_tri[index] * i_value;
                         sum_imag += curr_ft_tri[index + 1] * i_value;
                     }
+
                     frequency[fre_i] = sum_real;
                     frequency[fre_i + 1] = sum_imag;
                 }
@@ -256,9 +257,11 @@ namespace ptcat {
                         total_real += curr_ft_tri[index] * val;
                         total_imag += curr_ft_tri[index + 1] * val;
                     }
-
-                    frequency[fre_i] = total_real;
-                    frequency[fre_i + 1] = total_imag;
+                    double freq_weight = 1.0;
+                    if (is_use_gaussian_)
+                        freq_weight = gaussian_weight_[i];
+                    frequency[fre_i] = freq_weight * total_real;
+                    frequency[fre_i + 1] = freq_weight * total_imag;
                 }
             }
 
@@ -278,9 +281,7 @@ namespace ptcat {
                     double sum_imag = 0;
                     for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                     {
-                        double freq_weight = 1.0;
-                        if (is_use_gaussian_)
-                            freq_weight = gaussian_weight_[i];
+
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
                         int ft_index = i * N2 + index;
@@ -288,8 +289,8 @@ namespace ptcat {
                         const double& ft_imag = ft_tri_[ft_index + 1];
                         const double& fre_real = frequency[fre_i];
                         const double& fre_imag = frequency[fre_i + 1];
-                        sum_real += freq_weight * (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += freq_weight * (ft_real * fre_imag - ft_imag * fre_real);
+                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
+                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
                     }
                     out[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
                 }
@@ -343,9 +344,6 @@ namespace ptcat {
                     double sum_imag = 0;
                     for (int i = 0; i < envelope_range_size_; i++)
                     {
-                        double freq_weight = 1.0;
-                        if (is_use_gaussian_)
-                            freq_weight = gaussian_weight_[i];//高斯模式下， envelope_range_size_ 也变成全谱的大小了
                         int calc_index = envelope_range_.start + i;
                         int ft_index = calc_index * N2 + fre_i;
                         int fre_index = calc_index * 2;
@@ -355,8 +353,8 @@ namespace ptcat {
                         const double& ft_imag = ft_tri_[ft_index + 1];
                         const double& fre_real = frequency[fre_index];
                         const double& fre_imag = frequency[fre_index + 1];
-                        sum_real += freq_weight * (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += freq_weight * (ft_real * fre_imag - ft_imag * fre_real);
+                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
+                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
                     }
                     output[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
                 }
