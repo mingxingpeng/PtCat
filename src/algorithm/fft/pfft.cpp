@@ -34,6 +34,7 @@
 
 #include "ptcat/fft/pfft.h"
 #include "../include/pmemorypool.hpp"
+#include <fstream>
 
 namespace ptcat {
     namespace palgo {//Ëã·¨ÃüÃû¿Õ¼ä
@@ -166,6 +167,14 @@ namespace ptcat {
                         for (int gi = 0; gi < variable_range_size_; ++gi) {
                             gaussian_weight_[gi] = Gaussian(gi, gaussian_param);
                         }
+//                        std::ofstream  ofs("C:\\Users\\27852\\Desktop\\20251112.csv");
+//                        if (ofs){
+//                            for (int gi = 0; gi < variable_range_size_; ++gi) {
+//                                ofs << gi << "," << gaussian_weight_[gi] << std::endl;
+//                            }
+//                            ofs.close();
+//                        }
+
                     }
                 }
             }
