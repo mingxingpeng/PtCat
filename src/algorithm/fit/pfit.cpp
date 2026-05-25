@@ -2,7 +2,7 @@
 // Created by 27852 on 2026/5/6.
 //
 
-#include "ptcat/fit/pfit.h"
+#include "ptcat/algorithm/fit/pfit.h"
 #include "fit/pleastsquares.hpp"
 namespace ptcat {
     namespace palgo {//Ëã·¨ÃüÃû¿Õ¼ä

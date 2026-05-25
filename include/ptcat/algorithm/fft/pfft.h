@@ -75,6 +75,10 @@ namespace ptcat{
                 bool is_use_gaussian_ = false;//是否使用高斯权重
 
                 double* gaussian_weight_;//高斯权重
+
+                GaussianParam gaussian_param_;
+
+                int gaussian_weight_size_ = 0;
             public:
                 PFFT();
 

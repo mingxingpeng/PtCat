@@ -2,7 +2,7 @@
 // Created by 27852 on 2026/3/16.
 //
 
-#include "ptcat/select/pselect.h"
+#include "ptcat/algorithm/select/pselect.h"
 #include "select/pquicksel.hpp"
 
 namespace ptcat {

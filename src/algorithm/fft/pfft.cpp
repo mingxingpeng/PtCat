@@ -32,7 +32,7 @@
 
 */
 
-#include "ptcat/fft/pfft.h"
+#include "ptcat/algorithm/fft/pfft.h"
 #include "../include/pmemorypool.hpp"
 #include <fstream>
 
@@ -55,7 +55,9 @@ namespace ptcat {
                            least_squares_size_(0),
                            N_(0),
                            is_use_gaussian_(false),
-                           gaussian_weight_(nullptr)
+                           gaussian_weight_(nullptr),
+                           gaussian_param_({0, 0, 0}),
+                           gaussian_weight_size_(0)
             {}
 
             PFFT::~PFFT(){
@@ -79,19 +81,22 @@ namespace ptcat {
                 //判断是否使用高斯，如果使用高斯的话，就一定是全谱
                 is_use_gaussian_ = is_gaussian;
                 GaussianParam gaussian_param;
-
                 if (is_use_gaussian_){
                     //先计算一下参数值
                     gaussian_param.a_ = 1.0;
-                    int range_size = (envelope_range_.end - envelope_range_.start) * 0.5;
-                    gaussian_param.mu_ = envelope_range_.start + range_size ;
+                    int half_range_size = (envelope_range_.end - envelope_range_.start) * 0.5;
+                    gaussian_param.mu_ = envelope_range_.start + half_range_size ;
                     gaussian_param.sigma_ = sigma;
-                    //高斯模式下，不使用该区域，所以直接将该区域设置为全谱
-                    envelope_range_.start = 0;
-                    envelope_range_.end = N_ - 1;
-                    is_use_full_spectrum_ = true;
+                    //高斯不一定要使用全谱，因为因为 7 * sigma + mu_ 这个位置的数据已经可以看成零了,我看大部分分都为 e-11，已经是很小的数了
+                    //这个时候只需要将后续需要计算的范围设置为 mu_ 前后 7 * sigma， 超出范围则设置为边界值
+                    int seven_sigma = 7 * sigma;
+                    int gauss_start = gaussian_param.mu_ - seven_sigma;
+                    int gauss_end = gaussian_param.mu_ + seven_sigma;
+                    envelope_range_.start = gauss_start > 0 ? gauss_start : 0;
+                    envelope_range_.end = gauss_end < N_ - 1 ? gauss_end : N_ - 1;
+                    //需要将实际范围与他设置的一致
+                    variable_range_ = envelope_range_;
                 }
-
                 //如果使用全谱就设置下 variable_range_ 的值
                 if (is_use_full_spectrum_){
                     variable_range_.start = 0;
@@ -101,6 +106,21 @@ namespace ptcat {
                 //计算指定区域得傅里叶变换复数，或者全局傅里叶变换复数，也就是说是否计算全谱傅里叶变换得复数
                 variable_range_size_ = variable_range_.end - variable_range_.start + 1;
                 envelope_range_size_ = envelope_range_.end - envelope_range_.start + 1;
+
+                //如果参数更新，更新数据
+                if (is_use_gaussian_ && (!gaussian_weight_ || gaussian_weight_size_ != variable_range_size_ || !(gaussian_param == gaussian_param_))){
+                    if (gaussian_weight_)
+                        MPool.DeAllocate(gaussian_weight_, gaussian_weight_size_);//删除上一个数据得数据长度
+                    gaussian_weight_size_ = variable_range_size_;//gaussian_weight_size_ 主要用于记录之前的长度
+                    gaussian_param_ = gaussian_param;
+                    gaussian_weight_ = MPool.Allocate<double>(gaussian_weight_size_);//申请内存
+                    //非全谱就使用指定范围的，否则就是用全部的
+                    for (int gi = 0; gi < gaussian_weight_size_; ++gi) {
+                        int gk = variable_range_.start + gi;
+                        gaussian_weight_[gi] = Gaussian(gk, gaussian_param);
+                    }
+                }
+
                 int N2 = N_ * 2;
                 int ft_size = variable_range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
                 //首先先判断一下是否需要修改数据获取内存
@@ -159,23 +179,6 @@ namespace ptcat {
                     {
                         least_squares_sum_x_[xi] = (xi - X) * dif_sum_residual;
                     }
-
-                    if (is_use_gaussian_){//在这里直接将 gaussian 相乘到频域数据上， 不用再下面再相乘了
-                        if (gaussian_weight_)
-                            MPool.DeAllocate(gaussian_weight_, variable_range_size_);//删除上一个数据得数据长度
-                        gaussian_weight_ = MPool.Allocate<double>(variable_range_size_);//申请内存
-                        for (int gi = 0; gi < variable_range_size_; ++gi) {
-                            gaussian_weight_[gi] = Gaussian(gi, gaussian_param);
-                        }
-//                        std::ofstream  ofs("C:\\Users\\27852\\Desktop\\20251112.csv");
-//                        if (ofs){
-//                            for (int gi = 0; gi < variable_range_size_; ++gi) {
-//                                ofs << gi << "," << gaussian_weight_[gi] << std::endl;
-//                            }
-//                            ofs.close();
-//                        }
-
-                    }
                 }
             }
 
@@ -191,7 +194,7 @@ namespace ptcat {
                     least_squares_sum_x_ = nullptr;
                 }
                 if (gaussian_weight_){
-                    MPool.DeAllocate(gaussian_weight_, variable_range_size_);
+                    MPool.DeAllocate(gaussian_weight_, gaussian_weight_size_);
                     gaussian_weight_ = nullptr;
                 }
             }
@@ -266,6 +269,7 @@ namespace ptcat {
                         total_real += curr_ft_tri[index] * val;
                         total_imag += curr_ft_tri[index + 1] * val;
                     }
+                    //统一改频率，目前先不在下面反 fft 操作这一步了
                     double freq_weight = 1.0;
                     if (is_use_gaussian_)
                         freq_weight = gaussian_weight_[i];

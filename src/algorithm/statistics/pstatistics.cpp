@@ -2,7 +2,7 @@
 // Created by 27852 on 2026/5/6.
 //
 
-#include "ptcat/statistics/pstatistics.h"
+#include "ptcat/algorithm/statistics/pstatistics.h"
 #include "statistics/pdescriptive.hpp"
 
 namespace ptcat {

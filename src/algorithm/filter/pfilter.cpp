@@ -2,7 +2,7 @@
 // Created by 27852 on 2026/3/13.
 //
 
-#include "ptcat/filter/pfilter.h"
+#include "ptcat/algorithm//filter/pfilter.h"
 #include "filter/pmedian.hpp"
 #include "filter/plog.hpp"
 
