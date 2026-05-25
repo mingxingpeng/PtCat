@@ -58,7 +58,7 @@ list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_TPOOL_FILES})
 #**********************************************
 add_subdirectory(src/utils/clock)
 #将头文件与 cpp 文件汇总
-list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_CLOCK_DIR})#私有头文件
+#list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_CLOCK_DIR})#私有头文件
 list(APPEND PTCAT_CPP_ALL_FILES  ${PTCAT_CPP_CLOCK_FILES})
 
 #**********************************************
@@ -68,6 +68,20 @@ add_subdirectory(src/algorithm)
 #将头文件与 cpp 文件汇总
 list(APPEND PTCAT_H_PRIVATE_DIRS ${PTCAT_H_PRIVATE_ALGO_DIR})
 list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_ALGO_FILES})
+
+#**********************************************
+#文件流设置
+#**********************************************
+add_subdirectory(src/utils/fstream)
+#将头文件与 cpp 文件汇总
+list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_FSTREAM_FILES})
+
+#**********************************************
+#字符串设置
+#**********************************************
+add_subdirectory(src/utils/string)
+#将头文件与 cpp 文件汇总
+list(APPEND PTCAT_CPP_ALL_FILES ${PTCAT_CPP_STRING_FILES})
 
 
 #**********************************************

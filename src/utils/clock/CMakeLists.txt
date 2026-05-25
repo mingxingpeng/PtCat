@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.28)
 project(PClock)
-set(PTCAT_H_PRIVATE_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
+#set(PTCAT_H_PRIVATE_CLOCK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include" PARENT_SCOPE)
 set(PTCAT_CPP_CLOCK_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/pstopwatch.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/pchronograph.cpp"
