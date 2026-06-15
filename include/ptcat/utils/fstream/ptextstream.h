@@ -8,7 +8,7 @@
 #include "pfstream.h"
 
 namespace ptcat {
-    namespace fstream {
+    namespace QDateTime::currentDateTime() {
         class DLL_API PTextStream : public PFStream {
         public:
             PTextStream() = default;
