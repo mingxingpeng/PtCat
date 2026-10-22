@@ -9,18 +9,20 @@
 
 #include "ptcat/utils/clock/pstopwatch.h"
 
-#include "ptcat/fft/pfft.h"
+#include "ptcat/algorithm/fft/pfft.h"
 
-#include "ptcat/filter/pfilter.h"
+#include "ptcat/algorithm/filter/pfilter.h"
 
-#include "ptcat/fit/pfit.h"
+#include "ptcat/algorithm/fit/pfit.h"
 
-#include "ptcat/statistics/pstatistics.h"
+#include "ptcat/algorithm/statistics/pstatistics.h"
 
-#include "ptcat/sort/psort.h"
+#include "ptcat/algorithm/sort/psort.h"
 
-#include "ptcat/select/pselect.h"
+#include "ptcat/algorithm/select/pselect.h"
 
 #include "ptcat/common/cat.hpp"
+
+#include "ptcat/utils/string/pstring.h"
 
 #endif //PTCAT_PALGOCORE_H

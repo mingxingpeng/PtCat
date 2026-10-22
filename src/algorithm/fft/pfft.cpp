@@ -78,7 +78,7 @@ namespace ptcat {
                 //查看是否使用全谱
                 is_use_full_spectrum_ = is_full_spectrum;
 
-                //判断是否使用高斯，如果使用高斯的话，就一定是全谱
+                //判断是否使用高斯，如果使用高斯的话
                 is_use_gaussian_ = is_gaussian;
                 GaussianParam gaussian_param;
                 if (is_use_gaussian_){
