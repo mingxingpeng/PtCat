@@ -105,6 +105,7 @@ set(PTCAT_LIB_PROJECT_NAMES ${PROJECT_NAME})#默认当前库
 find_package(OpenMP REQUIRED)#查找 OpenMP
 
 add_library(${PROJECT_NAME} ${PTCAT_CPP_ALL_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/MANIFEST:NO")
 
 #判断一下，如果是静态库，那么需要穿递给 C++ 一个宏，告诉他这个是静态库
 if (NOT PTCAT_LIB_SHARED)
