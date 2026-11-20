@@ -28,7 +28,6 @@
 namespace ptcat{
     namespace palgo{//算法命名空间
         namespace fft{
-            //频域排序使用的是 标准排序方式
             struct Range{
                 int start;
                 int end;
@@ -50,7 +49,6 @@ namespace ptcat{
 
             class DLL_API PFFT{
             protected:
-//                ComplexD* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1
                 double* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
 
                 int ft_size_;//数据长度

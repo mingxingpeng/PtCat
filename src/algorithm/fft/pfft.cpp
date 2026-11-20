@@ -209,16 +209,20 @@ namespace ptcat {
             void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian, int sigma) {
                 //为类变量赋值
                 if (N <= 0) throw std::invalid_argument("invalid argument");
-                bool is_same = (N_ == N) && (envelope_range_ == range)
-                        && (is_use_full_spectrum_ == is_full_spectrum)
-                            && (is_use_gaussian_ == is_gaussian);
+
+                int old_N = N_;
+                Range old_variable_range = variable_range_;
+
                 N_ = N;
-                variable_range_ = range;
-                envelope_range_ = range;
+
+                //这里拿到频域的范围
+                variable_range_ = range;//计算对应频域的范围，如果是全谱，这里会被改变
+                envelope_range_ = range;//计算包络所需要的频域的范围，即使是全谱，包络也可以根据实际传进来的 range 来算
 
                 //查看是否使用全谱
                 is_use_full_spectrum_ = is_full_spectrum;
 
+                //如果使用了高斯，并且使用了全谱，那么对于高斯不能让其影响到相位和振幅的计算，高斯只作用域包络
                 //判断是否使用高斯，如果使用高斯的话
                 is_use_gaussian_ = is_gaussian;
                 GaussianParam gaussian_param;
@@ -249,15 +253,16 @@ namespace ptcat {
                 envelope_range_size_ = envelope_range_.end - envelope_range_.start + 1;
 
                 //如果参数更新，更新数据
-                if (is_use_gaussian_ && (!gaussian_weight_ || gaussian_weight_size_ != variable_range_size_ || !(gaussian_param == gaussian_param_))){
-                    if (gaussian_weight_)
-                        MPool.DeAllocate(gaussian_weight_, gaussian_weight_size_);//删除上一个数据得数据长度
-                    gaussian_weight_size_ = variable_range_size_;//gaussian_weight_size_ 主要用于记录之前的长度
+                if (is_use_gaussian_ && (!gaussian_weight_ || gaussian_weight_size_ != envelope_range_size_ || !(gaussian_param == gaussian_param_))) {
+                    if (gaussian_weight_) {
+                        MPool.DeAllocate(gaussian_weight_, gaussian_weight_size_);
+                        gaussian_weight_ = nullptr;
+                    }
+                    gaussian_weight_size_ = envelope_range_size_;
                     gaussian_param_ = gaussian_param;
-                    gaussian_weight_ = MPool.Allocate<double>(gaussian_weight_size_);//申请内存
-                    //非全谱就使用指定范围的，否则就是用全部的
+                    gaussian_weight_ = MPool.Allocate<double>(gaussian_weight_size_);
                     for (int gi = 0; gi < gaussian_weight_size_; ++gi) {
-                        int gk = variable_range_.start + gi;
+                        int gk = envelope_range_.start + gi;
                         gaussian_weight_[gi] = Gaussian(gk, gaussian_param);
                     }
                 }
@@ -265,7 +270,8 @@ namespace ptcat {
                 int N2 = N_ * 2;
                 int ft_size = variable_range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
                 //首先先判断一下是否需要修改数据获取内存
-                if (!ft_tri_ || ft_size_ != ft_size || !is_same) {//判断下数据是否一致
+                const bool need_rebuild_ft = (!ft_tri_) || (old_N != N_) || !(old_variable_range == variable_range_);
+                if (need_rebuild_ft) {//判断下数据是否一致
                     //调用内存池对数据进行获取
                     if (ft_tri_)
                         MPool.DeAllocate(ft_tri_, ft_size_);//删除上一个数据得数据长度
@@ -375,41 +381,46 @@ namespace ptcat {
                         total_real += curr_ft_tri[index] * val;
                         total_imag += curr_ft_tri[index + 1] * val;
                     }
-                    //统一改频率，目前先不在下面反 fft 操作这一步了
-                    double freq_weight = 1.0;
-                    if (is_use_gaussian_)
-                        freq_weight = gaussian_weight_[i];
-                    frequency[fre_i] = freq_weight * total_real;
-                    frequency[fre_i + 1] = freq_weight * total_imag;
+
+                    frequency[fre_i] = total_real;
+                    frequency[fre_i + 1] = total_imag;
                 }
             }
 
             //创建逆傅里叶变换计划, 做全谱的操作
             void PFFT::ExecutePIFTPlan(double*& out, double*& frequency) {
-                //这里计算的是幅度（包络），实部振幅，虚部表示相位，对它俩取模得到结果，获取到幅度信息
+                //这里计算的是包络，实部振幅，虚部表示相位，对它俩取模得到结果，获取到包络信息
                 //可以使用 abs 进行取模，也可以使用下面的方式进行取模
                 const double N_inv = 1.0 / N_;
                 //进行 ifft
                 //因为 frequency 其他范围内的值都为 0，没有参与计算的必要
-                //ComplexD* result = new ComplexD[N];//数据不需要传出去，这里可以删除，节省 new 和 delete 时间
-//#pragma omp parallel for//实行批量计算
                 int N2 = 2 * N_;
-                for (int n = 0, index = 0; n < N_; n++, index += 2)
-                {
+
+                //计算保罗是要用 envelope_range_ 来进行计算的
+                const int offset = envelope_range_.start - variable_range_.start;
+                for (int n = 0, index = 0; n < N_; n++, index += 2) {
                     double sum_real = 0;
                     double sum_imag = 0;
-                    for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
-                    {
-
+                    for (int i = 0; i < envelope_range_size_; i++) {
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
-                        int ft_index = i * N2 + index;
+                        int calc_index = offset + i;
+                        int ft_index = calc_index * N2 + index;
+                        int fre_index = calc_index * 2;
+                        //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         const double& ft_real = ft_tri_[ft_index];
                         const double& ft_imag = ft_tri_[ft_index + 1];
-                        const double& fre_real = frequency[fre_i];
-                        const double& fre_imag = frequency[fre_i + 1];
-                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
+                        double fre_real_c = frequency[fre_index];
+                        double fre_imag_c = frequency[fre_index + 1];
+                        //如果使用高斯，是用高斯的权重， 不然权重就全为 1
+                        if (is_use_gaussian_) {
+                            double freq_weight = gaussian_weight_[i];
+                            fre_real_c *= freq_weight;
+                            fre_imag_c *= freq_weight;
+                        }
+
+                        sum_real += (ft_real * fre_real_c + ft_imag * fre_imag_c);
+                        sum_imag += (ft_real * fre_imag_c - ft_imag * fre_real_c);
                     }
                     out[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
                 }
@@ -443,38 +454,17 @@ namespace ptcat {
 
                 //计算出对应的数据
                 const double N_inv = 1.0 / N_;
-                int N2 = 2 * N_;
-//#pragma omp parallel for
-                for (int n = 0, fre_i = 0; n < N_; n++, fre_i += 2)
-                {
-                    const double& out_imag = frequency[fre_i + 1];
+                for (int n = 0, fre_i = 0; n < N_; n++, fre_i += 2) {
                     const double& out_real = frequency[fre_i];
+                    const double& out_imag = frequency[fre_i + 1];
                     //计算相位
-                    // 计算相位（使用atan2处理四象限）
-                    double phase = atan2(out_imag, out_real);
-                    phases[n] = phase; // [-π, π]
+                    phases[n] = atan2(out_imag, out_real);
                     //计算振幅
-                    double amp = std::sqrt(out_real * out_real + out_imag * out_imag) * N_inv;// 除以 N 进行归一化得到实际值
-                    amplitudes[n] = amp;
-                    //计算幅度， 幅度使用计算范围 calc_range
-                    double sum_real = 0;
-                    double sum_imag = 0;
-                    for (int i = 0; i < envelope_range_size_; i++)
-                    {
-                        int calc_index = envelope_range_.start + i;
-                        int ft_index = calc_index * N2 + fre_i;
-                        int fre_index = calc_index * 2;
-                        //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
-                        //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
-                        const double& ft_real = ft_tri_[ft_index];
-                        const double& ft_imag = ft_tri_[ft_index + 1];
-                        const double& fre_real = frequency[fre_index];
-                        const double& fre_imag = frequency[fre_index + 1];
-                        sum_real += (ft_real * fre_real + ft_imag * fre_imag);
-                        sum_imag += (ft_real * fre_imag - ft_imag * fre_real);
-                    }
-                    output[n] = std::sqrt(sum_real * sum_real + sum_imag * sum_imag) * N_inv;
+                    amplitudes[n] = std::sqrt(out_real * out_real + out_imag * out_imag) * N_inv;
                 }
+                //计算包络
+                ExecutePIFTPlan(output, frequency);
+                //进行排序
                 if (reorder_to_symmetric){//之前相位和振幅是标准排序，下面转换为对称排序
                     double* temp = MPool.Allocate<double>(N_);
                     int half_N = N_ * 0.5;
