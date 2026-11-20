@@ -66,10 +66,6 @@ namespace ptcat{
                 //初始化傅里叶变换复数，是否全谱初始化，还是局部初始化
                 bool is_use_full_spectrum_ = false;//一般来说不推荐全谱，因为我可能要的就是某一个区域得数据，其他区域可以都设置为 0，并没有影响，只有在需要获取振幅，相位等需要用到全谱计算
 
-                double* least_squares_sum_x_;//最小二乘计算
-
-                int least_squares_size_;
-
                 int N_;//数据数量
 
                 bool is_use_gaussian_ = false;//是否使用高斯权重
@@ -112,12 +108,6 @@ namespace ptcat{
                 //获取到振幅， 相位，幅度，这里必须全谱
                 void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric = false);
 
-
-                /// <summary>
-                /// 根据相位来求得数据高度，相位的斜率与包络图高度是成正比的，看相位获取的高度是否比包络图效果好
-                /// 返回斜率
-                /// </summary>
-                void PFFTPhaseRun(const double* input, double& k, double& b);
             };
         }
     }
