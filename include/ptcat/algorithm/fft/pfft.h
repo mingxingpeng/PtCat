@@ -41,7 +41,7 @@ namespace ptcat{
                 Range(const Range& range) = default;
                 Range& operator=(const Range& range) = default;
 
-                bool operator==(const Range& range){
+                bool operator==(const Range& range) const{
                     if (this == &range) return true;
                     return this->start == range.start && this->end == range.end;
                 }
@@ -49,7 +49,9 @@ namespace ptcat{
 
             class DLL_API PFFT{
             protected:
-                double* ft_tri_;//用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
+                //ft_cos_ 和 ft_sin_ 用于存储傅里叶变换得复数，反傅里叶变换，虚部乘以 -1, 不再使用结构体来存储，例如 0 是实部， 1 是虚部
+                double* ft_cos_;//存储实部
+                double* ft_sin_;//存储虚部
 
                 int ft_size_;//数据长度
 
@@ -76,6 +78,10 @@ namespace ptcat{
             public:
                 PFFT();
 
+                PFFT(const PFFT&) = delete;
+
+                PFFT& operator=(const PFFT&) = delete;
+
                 virtual ~PFFT();
 
                 //初始化所需资源, 如果使用高斯，那么一定是全谱，如果不使用高斯，就看接下来是全谱还是不全谱计算
@@ -94,6 +100,8 @@ namespace ptcat{
 
                 //创建逆傅里叶变换计划, 做全谱的操作
                 void ExecutePIFTPlan(double*& out, double*& frequency) ;
+
+                void ExecutePIFTPlanAVX(double*& out, double*& frequency) ;
 
                 void FreeFrequency(double*& frequency);
             };

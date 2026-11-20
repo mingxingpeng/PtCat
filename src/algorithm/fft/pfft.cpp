@@ -178,7 +178,7 @@
 
 #include "ptcat/algorithm/fft/pfft.h"
 #include "../include/pmemorypool.hpp"
-#include <fstream>
+#include <cstring>
 
 namespace ptcat {
     namespace palgo {//算法命名空间
@@ -187,12 +187,21 @@ namespace ptcat {
 
             static PMemoryPool& MPool = GetMP();
 
+            static inline double HSum256(__m256d v) {
+                __m128d lo = _mm256_castpd256_pd128(v);
+                __m128d hi = _mm256_extractf128_pd(v, 1);
+                lo = _mm_add_pd(lo, hi);
+                __m128d hi64 = _mm_unpackhi_pd(lo, lo);
+                return _mm_cvtsd_f64(_mm_add_sd(lo, hi64));
+            }
+
             PFFT::PFFT() : is_use_full_spectrum_(false),
                            variable_range_({0, 0}),
                            variable_range_size_(0),
                            envelope_range_({0, 0}),
                            envelope_range_size_(0),
-                           ft_tri_(nullptr),
+                           ft_cos_(nullptr),
+                           ft_sin_(nullptr),
                            ft_size_(0),
                            N_(0),
                            is_use_gaussian_(false),
@@ -210,8 +219,8 @@ namespace ptcat {
                 //为类变量赋值
                 if (N <= 0 || range.start < 0 || range.end >= N || (is_gaussian && sigma <= 0)) throw std::invalid_argument("invalid argument");
 
-                int old_N = N_;
-                Range old_variable_range = variable_range_;
+                const int old_N = N_;
+                const Range old_variable_range = variable_range_;
 
                 N_ = N;
 
@@ -267,16 +276,25 @@ namespace ptcat {
                     }
                 }
 
-                int N2 = N_ * 2;
-                int ft_size = variable_range_size_ * N2;//使用 double 类型，两个 double 表示一个复数
+                //目前使用 ft_cos_ 和 ft_sin_ 两个容器，一个存储实部，一个存储虚部，而不是在使用 ft_tri_ 一个交错存储实部虚部了
+                int ft_size = variable_range_size_ * N_;//使用 double 类型，两个 double 表示一个复数
                 //首先先判断一下是否需要修改数据获取内存
-                const bool need_rebuild_ft = (!ft_tri_) || (old_N != N_) || !(old_variable_range == variable_range_);
+                const bool need_rebuild_ft = (!ft_cos_ || !ft_sin_) || (old_N != N_) || !(old_variable_range == variable_range_);
                 if (need_rebuild_ft) {//判断下数据是否一致
                     //调用内存池对数据进行获取
-                    if (ft_tri_)
-                        MPool.DeAllocate(ft_tri_, ft_size_);//删除上一个数据得数据长度
+                    if (ft_cos_){
+                        MPool.DeAllocate(ft_cos_, ft_size_);//删除上一个数据得数据长度
+                        ft_cos_ = nullptr;
+                    }
+                    if (ft_sin_){
+                        MPool.DeAllocate(ft_sin_, ft_size_);//删除上一个数据得数据长度
+                        ft_sin_ = nullptr;
+                    }
+
                     ft_size_ = ft_size;//然后才更新当前数据的长度，并申请内存
-                    ft_tri_ = MPool.Allocate<double>(ft_size_);//申请内存
+
+                    ft_cos_ = MPool.Allocate<double>(ft_size_);//申请内存
+                    ft_sin_ = MPool.Allocate<double>(ft_size_);//申请内存
 
                     double N_dif = 1.0 / N_;
                     //进行并行运算
@@ -285,14 +303,12 @@ namespace ptcat {
                     {
                         int k = variable_range_.start + i;
                         //计算一下数据的位置
-                        double* curr_ft_tri = &(ft_tri_[i * N2]);
-                        for (int n = 0, index = 0; n < N_; n++, index += 2)
-                        {
+                        double* curr_ft_cos = &(ft_cos_[i * N_]);
+                        double* curr_ft_sin = &(ft_sin_[i * N_]);
+                        for (int n = 0; n < N_; n++) {
                             double param = TwoPi * k * N_dif * n;
-                            double cos_res = std::cos(param);
-                            double sin_res = -std::sin(param);
-                            curr_ft_tri[index] = cos_res;
-                            curr_ft_tri[index + 1] = sin_res;
+                            curr_ft_cos[n] = std::cos(param);
+                            curr_ft_sin[n] = -std::sin(param);
                         }
                     }
                 }
@@ -300,10 +316,15 @@ namespace ptcat {
 
             //释放资源
             void PFFT::PFFTDeInit() {
-                if (ft_tri_)
+                if (ft_cos_)
                 {
-                    MPool.DeAllocate(ft_tri_, ft_size_);
-                    ft_tri_ = nullptr;
+                    MPool.DeAllocate(ft_cos_, ft_size_);
+                    ft_cos_ = nullptr;
+                }
+                if (ft_sin_)
+                {
+                    MPool.DeAllocate(ft_sin_, ft_size_);
+                    ft_sin_ = nullptr;
                 }
                 if (gaussian_weight_){
                     MPool.DeAllocate(gaussian_weight_, gaussian_weight_size_);
@@ -320,17 +341,17 @@ namespace ptcat {
             void PFFT::ExecutePFTPlan(const double* input, double*& frequency) {
                 //计算出频域数据，只计算范围内的频域数据,其他都为 0，对于接下来的计算没有意义
 //#pragma omp parallel for//实行批量计算
-                int N2 = N_ * 2;
                 for (int i = 0, fre_i = 0; i < variable_range_size_; i++, fre_i += 2)
                 {
                     double sum_real = 0;
                     double sum_imag = 0;
-                    double* curr_ft_tri = &(ft_tri_[i * N2]);
-                    for (int n = 0, index = 0; n < N_; n++, index += 2)
+                    const double* curr_cos = &(ft_cos_[i * N_]);
+                    const double* curr_sin = &(ft_sin_[i * N_]);
+                    for (int n = 0; n < N_; n++)
                     {
                         double i_value = input[n];
-                        sum_real += curr_ft_tri[index] * i_value;
-                        sum_imag += curr_ft_tri[index + 1] * i_value;
+                        sum_real += curr_cos[n] * i_value;
+                        sum_imag += curr_sin[n] * i_value;
                     }
 
                     frequency[fre_i] = sum_real;
@@ -341,49 +362,88 @@ namespace ptcat {
             // SIMD 加速傅里叶变换
             void PFFT::ExecutePFTPlanAVX(const double* input, double*& frequency) {
                 const int step = 4; // 每次处理 4 个 double（256 bit）
-                const int step2 = 2 * step; // 每次处理 4 个 double（256 bit）
+                //全谱模式下利用实信号共轭对称性，只需计算前半段 [0, N/2]
+                const int calc_size = is_use_full_spectrum_ ? (N_ / 2 + 1) : variable_range_size_;
 //#pragma omp parallel for//实行批量计算
-                int N2 = N_ * 2;
-                for (int i = 0, fre_i = 0; i < variable_range_size_; ++i, fre_i += 2) {
+                int i = 0;
+                //每次同时计算 2 个频点，复用 input 加载并填满 FMA 流水线
+                for (; i <= calc_size - 2; i += 2) {
+                    __m256d sr0 = _mm256_setzero_pd();
+                    __m256d si0 = _mm256_setzero_pd();
+                    __m256d sr1 = _mm256_setzero_pd();
+                    __m256d si1 = _mm256_setzero_pd();
+
+                    const double* cos0 = ft_cos_ + static_cast<size_t>(i) * N_;
+                    const double* sin0 = ft_sin_ + static_cast<size_t>(i) * N_;
+                    const double* cos1 = cos0 + N_;
+                    const double* sin1 = sin0 + N_;
+
+                    int n = 0;
+                    for (; n <= N_ - step; n += step) {
+                        __m256d in_vec = _mm256_loadu_pd(input + n);
+                        sr0 = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(cos0 + n), sr0);
+                        si0 = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(sin0 + n), si0);
+                        sr1 = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(cos1 + n), sr1);
+                        si1 = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(sin1 + n), si1);
+                    }
+                    // 累加 SIMD 寄存器内容
+                    double r0 = HSum256(sr0);
+                    double im0 = HSum256(si0);
+                    double r1 = HSum256(sr1);
+                    double im1 = HSum256(si1);
+
+                    // 处理剩余项
+                    for (; n < N_; ++n) {
+                        double val = input[n];
+                        r0  += cos0[n] * val;
+                        im0 += sin0[n] * val;
+                        r1  += cos1[n] * val;
+                        im1 += sin1[n] * val;
+                    }
+
+                    const int fre_i = i * 2;
+                    frequency[fre_i]     = r0;
+                    frequency[fre_i + 1] = im0;
+                    frequency[fre_i + 2] = r1;
+                    frequency[fre_i + 3] = im1;
+                }
+
+                // 处理奇数个频点剩下的最后 1 个
+                for (; i < calc_size; ++i) {
                     __m256d sum_real = _mm256_setzero_pd();
                     __m256d sum_imag = _mm256_setzero_pd();
 
-                    double* curr_ft_tri = &(ft_tri_[i * N2]);
+                    const double* curr_cos = ft_cos_ + static_cast<size_t>(i) * N_;
+                    const double* curr_sin = ft_sin_ + static_cast<size_t>(i) * N_;
                     int n = 0;
-                    int index = 0;
-                    for (; n <= N_ - step; n += step, index += step2) {
+                    for (; n <= N_ - step; n += step) {
                         __m256d in_vec = _mm256_loadu_pd(input + n);
-                        __m256d tri_real = _mm256_set_pd(
-                                curr_ft_tri[index + 6],
-                                curr_ft_tri[index + 4],
-                                curr_ft_tri[index + 2],
-                                curr_ft_tri[index + 0]);
-                        __m256d tri_imag = _mm256_set_pd(
-                                curr_ft_tri[index + 7],
-                                curr_ft_tri[index + 5],
-                                curr_ft_tri[index + 3],
-                                curr_ft_tri[index + 1]);
-
-                        sum_real = _mm256_fmadd_pd(in_vec, tri_real, sum_real);
-                        sum_imag = _mm256_fmadd_pd(in_vec, tri_imag, sum_imag);
+                        sum_real = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(curr_cos + n), sum_real);
+                        sum_imag = _mm256_fmadd_pd(in_vec, _mm256_loadu_pd(curr_sin + n), sum_imag);
                     }
                     // 累加 SIMD 寄存器内容
-                    double real_sum[4], imag_sum[4];
-                    _mm256_storeu_pd(real_sum, sum_real);
-                    _mm256_storeu_pd(imag_sum, sum_imag);
-
-                    double total_real = real_sum[0] + real_sum[1] + real_sum[2] + real_sum[3];
-                    double total_imag = imag_sum[0] + imag_sum[1] + imag_sum[2] + imag_sum[3];
+                    double total_real = HSum256(sum_real);
+                    double total_imag = HSum256(sum_imag);
 
                     // 处理剩余项
-                    for (; n < N_; ++n, index += 2) {
+                    for (; n < N_; ++n) {
                         double val = input[n];
-                        total_real += curr_ft_tri[index] * val;
-                        total_imag += curr_ft_tri[index + 1] * val;
+                        total_real += curr_cos[n] * val;
+                        total_imag += curr_sin[n] * val;
                     }
 
+                    const int fre_i = i * 2;
                     frequency[fre_i] = total_real;
                     frequency[fre_i + 1] = total_imag;
+                }
+
+                //全谱模式下按共轭对称补全后半段频谱
+                if (is_use_full_spectrum_) {
+                    for (int k = N_ / 2 + 1; k < N_; ++k) {
+                        int sym_k = N_ - k;
+                        frequency[k * 2] =  frequency[sym_k * 2];
+                        frequency[k * 2 + 1] = -frequency[sym_k * 2 + 1];
+                    }
                 }
             }
 
@@ -394,22 +454,20 @@ namespace ptcat {
                 const double N_inv = 1.0 / N_;
                 //进行 ifft
                 //因为 frequency 其他范围内的值都为 0，没有参与计算的必要
-                int N2 = 2 * N_;
-
                 //计算保罗是要用 envelope_range_ 来进行计算的
                 const int offset = envelope_range_.start - variable_range_.start;
-                for (int n = 0, index = 0; n < N_; n++, index += 2) {
+                for (int n = 0; n < N_; n++) {
                     double sum_real = 0;
                     double sum_imag = 0;
                     for (int i = 0; i < envelope_range_size_; i++) {
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
                         //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
                         int calc_index = offset + i;
-                        int ft_index = calc_index * N2 + index;
+                        int ft_index = calc_index * N_ + n;
                         int fre_index = calc_index * 2;
                         //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_tri_ 是 - 虚部
-                        const double& ft_real = ft_tri_[ft_index];
-                        const double& ft_imag = ft_tri_[ft_index + 1];
+                        const double& ft_real = ft_cos_[ft_index];
+                        const double& ft_imag = ft_sin_[ft_index];
                         double fre_real_c = frequency[fre_index];
                         double fre_imag_c = frequency[fre_index + 1];
                         //如果使用高斯，是用高斯的权重， 不然权重就全为 1
@@ -426,6 +484,84 @@ namespace ptcat {
                 }
             }
 
+            //创建逆傅里叶变换计划, 做全谱的操作
+            void PFFT::ExecutePIFTPlanAVX(double*& out, double*& frequency) {
+                //这里计算的是包络，实部振幅，虚部表示相位，对它俩取模得到结果，获取到包络信息
+                //可以使用 abs 进行取模，也可以使用下面的方式进行取模
+                const double N_inv = 1.0 / N_;
+                //进行 ifft
+                //因为 frequency 其他范围内的值都为 0，没有参与计算的必要
+
+                //常规长度优先使用栈缓存避免频繁申请，超长回退到内存池 MPool
+                constexpr int kStackMaxN = 2048;
+                alignas(32) double stack_real[kStackMaxN];
+                alignas(32) double stack_imag[kStackMaxN];
+                const bool use_pool = (N_ > kStackMaxN);
+                double* real_buf = use_pool ? MPool.Allocate<double>(N_) : stack_real;
+                double* imag_buf = use_pool ? MPool.Allocate<double>(N_) : stack_imag;
+                std::memset(real_buf, 0, sizeof(double) * N_);
+                std::memset(imag_buf, 0, sizeof(double) * N_);
+
+                //计算保罗是要用 envelope_range_ 来进行计算的
+                const int offset = envelope_range_.start - variable_range_.start;
+                const int step = 4;
+
+                //外层遍历频点 i，内层顺序遍历时域 n，消除跨行 Cache Miss 并开启 AVX2 向量化
+                for (int i = 0; i < envelope_range_size_; i++) {
+                    //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_sin_ 是 - 虚部
+                    //复数相乘,将虚部和实部先使用变量获取，避免频繁调用函数消磨时间
+                    const int calc_index = offset + i;
+                    const int fre_index = calc_index * 2;
+                    //如果使用高斯，是用高斯的权重， 不然权重就全为 1；并将 N_inv 提前合并
+                    const double scale = is_use_gaussian_ ? (gaussian_weight_[i] * N_inv) : N_inv;
+                    const double fre_real_c = frequency[fre_index] * scale;
+                    const double fre_imag_c = frequency[fre_index + 1] * scale;
+
+                    const __m256d v_re = _mm256_set1_pd(fre_real_c);
+                    const __m256d v_im = _mm256_set1_pd(fre_imag_c);
+                    const double* curr_cos = ft_cos_ + static_cast<size_t>(calc_index) * N_;
+                    const double* curr_sin = ft_sin_ + static_cast<size_t>(calc_index) * N_;
+
+                    int n = 0;
+                    for (; n <= N_ - step; n += step) {
+                        __m256d v_cos = _mm256_loadu_pd(curr_cos + n);
+                        __m256d v_sin = _mm256_loadu_pd(curr_sin + n);
+                        __m256d sr = _mm256_loadu_pd(real_buf + n);
+                        __m256d si = _mm256_loadu_pd(imag_buf + n);
+
+                        //这里 ift 操作时虚部需要乘以 -1， 要取负，因为ift 计算出来是 + 虚部， ft_sin_ 是 - 虚部
+                        sr = _mm256_fmadd_pd(v_cos, v_re, sr);
+                        sr = _mm256_fmadd_pd(v_sin, v_im, sr);
+                        si = _mm256_fmadd_pd(v_cos, v_im, si);
+                        si = _mm256_fnmadd_pd(v_sin, v_re, si);
+
+                        _mm256_storeu_pd(real_buf + n, sr);
+                        _mm256_storeu_pd(imag_buf + n, si);
+                    }
+                    for (; n < N_; ++n) {
+                        real_buf[n] += (curr_cos[n] * fre_real_c + curr_sin[n] * fre_imag_c);
+                        imag_buf[n] += (curr_cos[n] * fre_imag_c - curr_sin[n] * fre_real_c);
+                    }
+                }
+
+                //向量化取模计算包络（N_inv 已提前乘入）
+                int n = 0;
+                for (; n <= N_ - step; n += step) {
+                    __m256d sr = _mm256_loadu_pd(real_buf + n);
+                    __m256d si = _mm256_loadu_pd(imag_buf + n);
+                    __m256d mag2 = _mm256_fmadd_pd(sr, sr, _mm256_mul_pd(si, si));
+                    _mm256_storeu_pd(out + n, _mm256_sqrt_pd(mag2));
+                }
+                for (; n < N_; ++n) {
+                    out[n] = std::sqrt(real_buf[n] * real_buf[n] + imag_buf[n] * imag_buf[n]);
+                }
+
+                if (use_pool) {
+                    MPool.DeAllocate(real_buf, N_);
+                    MPool.DeAllocate(imag_buf, N_);
+                }
+            }
+
             void PFFT::FreeFrequency(double*& frequency){
                 if (frequency){
                     MPool.DeAllocate(frequency, variable_range_size_ * 2);
@@ -435,12 +571,26 @@ namespace ptcat {
 
             //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
             void PFFTN::PFFTRun(const double* input, double*& output) {
-                double* frequency = nullptr;
-                int fre_len = 0;
-                GenerateFrequency(frequency, fre_len);
+                /*
+                 如果多个线程同时调用，使用内存池可能会出现锁竞争导致变慢的情况
+                     常规扫描点数（N < 2048）下，frequency 最多也就 32 KB，直接放在每个线程自己的栈上只要一条移动栈指针的指令，零分配、零锁竞争；只有超出阈值时才回退
+                     调原来的 GenerateFrequency / FreeFrequency 和 MPool
+                 */
+                constexpr int kStackMaxFreq = 4096;
+                alignas(32) double stack_freq[kStackMaxFreq];
+                double* frequency = stack_freq;
+                int fre_len = variable_range_size_ * 2;
+                const bool use_pool_freq = (fre_len > kStackMaxFreq);
+                if (use_pool_freq) {//超过我们设置的阈值才使用内存池
+                    GenerateFrequency(frequency, fre_len);
+                }
+
                 ExecutePFTPlanAVX(input, frequency);
-                ExecutePIFTPlan(output, frequency);
-                FreeFrequency(frequency);
+                ExecutePIFTPlanAVX(output, frequency);
+
+                if (use_pool_freq) {
+                    FreeFrequency(frequency);
+                }
             }
 
             //相位和振幅通常需要全谱信息
@@ -448,9 +598,20 @@ namespace ptcat {
             void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric) {
                 //判断下是不是全谱
                 if (!is_use_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
-                double* frequency = nullptr;
-                int fre_len = 0;
-                GenerateFrequency(frequency, fre_len);
+                /*
+                 如果多个线程同时调用，使用内存池可能会出现锁竞争导致变慢的情况
+                     常规扫描点数（N < 2048）下，frequency 最多也就 32 KB，直接放在每个线程自己的栈上只要一条移动栈指针的指令，零分配、零锁竞争；只有超出阈值时才回退
+                     调原来的 GenerateFrequency / FreeFrequency 和 MPool
+                 */
+                constexpr int kStackMaxFreq = 4096;
+                alignas(32) double stack_freq[kStackMaxFreq];
+                double* frequency = stack_freq;
+                int fre_len = variable_range_size_ * 2;
+                const bool use_pool_freq = (fre_len > kStackMaxFreq);
+                if (use_pool_freq) {//超过我们设置的阈值才使用内存池
+                    GenerateFrequency(frequency, fre_len);
+                }
+
                 ExecutePFTPlanAVX(input, frequency);//获取到全谱频域
 
                 //计算出对应的数据
@@ -464,10 +625,14 @@ namespace ptcat {
                     amplitudes[n] = std::sqrt(out_real * out_real + out_imag * out_imag) * N_inv;
                 }
                 //计算包络
-                ExecutePIFTPlan(output, frequency);
+                ExecutePIFTPlanAVX(output, frequency);
                 //进行排序
                 if (reorder_to_symmetric){//之前相位和振幅是标准排序，下面转换为对称排序
-                    double* temp = MPool.Allocate<double>(N_);
+                    constexpr int kStackMaxN = 2048;
+                    alignas(32) double stack_temp[kStackMaxN];
+                    const bool use_pool_temp = (N_ > kStackMaxN);
+                    double* temp = use_pool_temp ? MPool.Allocate<double>(N_) : stack_temp;
+
                     int half_N = N_ * 0.5;
                     memcpy(temp, amplitudes, N_ * sizeof(double));//做数据备份
                     if (N_ % 2 == 0)//偶数
@@ -508,9 +673,14 @@ namespace ptcat {
                         //拷贝正频率
                         memcpy(phases + half_N + 1, temp + 1, half_N * sizeof(double));//做数据备份
                     }
-                    MPool.DeAllocate(temp, N_);
+                    if (use_pool_temp) {
+                        MPool.DeAllocate(temp, N_);
+                    }
                 }
-                FreeFrequency(frequency);
+
+                if (use_pool_freq) {
+                    FreeFrequency(frequency);
+                }
             }
         }
     }
