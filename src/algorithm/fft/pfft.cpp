@@ -208,7 +208,7 @@ namespace ptcat {
             //初始化所需资源
             void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian, int sigma) {
                 //为类变量赋值
-                if (N <= 0) throw std::invalid_argument("invalid argument");
+                if (N <= 0 || range.start < 0 || range.end >= N || (is_gaussian && sigma <= 0)) throw std::invalid_argument("invalid argument");
 
                 int old_N = N_;
                 Range old_variable_range = variable_range_;
@@ -429,6 +429,7 @@ namespace ptcat {
             void PFFT::FreeFrequency(double*& frequency){
                 if (frequency){
                     MPool.DeAllocate(frequency, variable_range_size_ * 2);
+                    frequency = nullptr;
                 }
             }
 

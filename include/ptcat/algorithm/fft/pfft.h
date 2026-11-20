@@ -76,7 +76,7 @@ namespace ptcat{
             public:
                 PFFT();
 
-                ~PFFT();
+                virtual ~PFFT();
 
                 //初始化所需资源, 如果使用高斯，那么一定是全谱，如果不使用高斯，就看接下来是全谱还是不全谱计算
                 void PFFTInit(const int& N, const Range& range, bool is_full_spectrum = false, bool is_gaussian = false, int sigma = 11);
