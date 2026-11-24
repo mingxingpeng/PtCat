@@ -225,8 +225,21 @@ namespace ptcat {
                 N_ = N;
 
                 //这里拿到频域的范围
-                variable_range_ = range;//计算对应频域的范围，如果是全谱，这里会被改变
-                envelope_range_ = range;//计算包络所需要的频域的范围，即使是全谱，包络也可以根据实际传进来的 range 来算
+                //0 位表示直流，一般是是平均亮度背景，再计算包络的时候将其去除，，这里对其进行去直流， 这里先全部这样表示， variable_range_ 如果是全谱则从 0 开始到结束
+                /*
+                 直流也就是 k = 0, 我们根据公式可以得到其为
+                                N-1
+                    X[k]  =    ∑   x[n] * e^(-j * 2π*k*n / N)
+                                n=0
+                    ===>
+                                N-1
+                    X[0]  =    ∑   x[n]  //可以看出是原始亮度的和
+                                n=0
+                        再逆傅里叶变换的时候需要除以 N, 就相当于使用了平均亮度背景
+                    白光干涉测量高度依靠的是亮度的振荡变化，而不是像素本身有多亮。 平均亮度背景参与包络重建，可能干扰包络的形状和峰值位置。
+                 */
+                variable_range_ = Range(range.start ==0 ? 1 : range.start, range.end);//计算对应频域的范围，如果是全谱，这里会被改变
+                envelope_range_ = variable_range_;//计算包络所需要的频域的范围，即使是全谱，包络也可以根据实际传进来的 range 来算
 
                 //查看是否使用全谱
                 is_use_full_spectrum_ = is_full_spectrum;
@@ -238,15 +251,18 @@ namespace ptcat {
                 if (is_use_gaussian_){
                     //先计算一下参数值
                     gaussian_param.a_ = 1.0;
-                    int half_range_size = (envelope_range_.end - envelope_range_.start) * 0.5;
-                    gaussian_param.mu_ = envelope_range_.start + half_range_size ;
+                    //这里在计算高斯中心的时候仍然使用一开始给的范围来得到高斯的参数
+                    int half_range_size = (range.end - range.start) * 0.5;
+                    gaussian_param.mu_ = range.start + half_range_size ;
                     gaussian_param.sigma_ = sigma;
                     //高斯不一定要使用全谱，因为因为 7 * sigma + mu_ 这个位置的数据已经可以看成零了,我看大部分分都为 e-11，已经是很小的数了
                     //这个时候只需要将后续需要计算的范围设置为 mu_ 前后 7 * sigma， 超出范围则设置为边界值
                     int seven_sigma = 7 * sigma;
                     int gauss_start = gaussian_param.mu_ - seven_sigma;
                     int gauss_end = gaussian_param.mu_ + seven_sigma;
-                    envelope_range_.start = gauss_start > 0 ? gauss_start : 0;
+                    //envelope_range_.start = gauss_start > 0 ? gauss_start : 0;
+                    //0 位表示直流，一般是是平均亮度背景，再计算包络的时候将其去除，就是消除了平均亮度背景， 这里对其进行去直流
+                    envelope_range_.start = gauss_start > 0 ? gauss_start : 1;
                     envelope_range_.end = gauss_end < N_ - 1 ? gauss_end : N_ - 1;
                     //需要将实际范围与他设置的一致
                     variable_range_ = envelope_range_;
@@ -454,7 +470,7 @@ namespace ptcat {
                 const double N_inv = 1.0 / N_;
                 //进行 ifft
                 //因为 frequency 其他范围内的值都为 0，没有参与计算的必要
-                //计算保罗是要用 envelope_range_ 来进行计算的
+                //计算包络是要用 envelope_range_ 来进行计算的
                 const int offset = envelope_range_.start - variable_range_.start;
                 for (int n = 0; n < N_; n++) {
                     double sum_real = 0;
