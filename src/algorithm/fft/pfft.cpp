@@ -217,12 +217,16 @@ namespace ptcat {
             //初始化所需资源
             void PFFT::PFFTInit(const int& N, const Range& range, bool is_full_spectrum, bool is_gaussian, int sigma) {
                 //为类变量赋值
-                if (N <= 0 || range.start < 0 || range.end >= N || (is_gaussian && sigma <= 0)) throw std::invalid_argument("invalid argument");
+                if (N <= 1 || range.start < 0 || range.end >= N || range.start > range.end ||
+                    (!is_gaussian && range.end == 0) || (is_gaussian && sigma <= 0)) {
+                    throw std::invalid_argument("invalid argument");
+                }
 
                 const int old_N = N_;
                 const Range old_variable_range = variable_range_;
 
                 N_ = N;
+                const int half_N = N_/2;
 
                 //这里拿到频域的范围
                 //0 位表示直流，一般是是平均亮度背景，再计算包络的时候将其去除，，这里对其进行去直流， 这里先全部这样表示， variable_range_ 如果是全谱则从 0 开始到结束
@@ -238,7 +242,11 @@ namespace ptcat {
                         再逆傅里叶变换的时候需要除以 N, 就相当于使用了平均亮度背景
                     白光干涉测量高度依靠的是亮度的振荡变化，而不是像素本身有多亮。 平均亮度背景参与包络重建，可能干扰包络的形状和峰值位置。
                  */
-                variable_range_ = Range(range.start ==0 ? 1 : range.start, range.end);//计算对应频域的范围，如果是全谱，这里会被改变
+                /*
+                 单边带逆变换（IDFT）提取包络的前提是只保留正频率，丢弃负频率。如果 sigma 较大或中心频率 mu_ 偏高，导致 mu_ + 7 * sigma > N_ / 2，
+                 envelope_range_.end 就会跨过奈奎斯特频率把负频率也算进来，重构出的不再是纯解析信号，包络会出现明显的高频载波震荡。
+                 */
+                variable_range_ = Range(range.start ==0 ? 1 : range.start, range.end < half_N ? range.end : half_N);//计算对应频域的范围，如果是全谱，这里会被改变
                 envelope_range_ = variable_range_;//计算包络所需要的频域的范围，即使是全谱，包络也可以根据实际传进来的 range 来算
 
                 //查看是否使用全谱
@@ -263,10 +271,16 @@ namespace ptcat {
                     //envelope_range_.start = gauss_start > 0 ? gauss_start : 0;
                     //0 位表示直流，一般是是平均亮度背景，再计算包络的时候将其去除，就是消除了平均亮度背景， 这里对其进行去直流
                     envelope_range_.start = gauss_start > 0 ? gauss_start : 1;
-                    envelope_range_.end = gauss_end < N_ - 1 ? gauss_end : N_ - 1;
+
+                    /*
+                     单边带逆变换（IDFT）提取包络的前提是只保留正频率，丢弃负频率。如果 sigma 较大或中心频率 mu_ 偏高，导致 mu_ + 7 * sigma > N_ / 2，
+                     envelope_range_.end 就会跨过奈奎斯特频率把负频率也算进来，重构出的不再是纯解析信号，包络会出现明显的高频载波震荡。
+                     */
+                    envelope_range_.end = gauss_end < half_N ? gauss_end : half_N;
                     //需要将实际范围与他设置的一致
                     variable_range_ = envelope_range_;
                 }
+                std::cout << "envelope real range:" <<  envelope_range_.start << " - " << envelope_range_.end << std::endl;
                 //如果使用全谱就设置下 variable_range_ 的值
                 if (is_use_full_spectrum_){
                     variable_range_.start = 0;
@@ -585,6 +599,13 @@ namespace ptcat {
                 }
             }
 
+            void PFFT::CalcAmplitudeAndPhase(const double& out_real, const double& out_imag, const double& N_inv, double& phase, double& amplitude){
+                //计算相位
+                phase = atan2(out_imag, out_real);
+                //计算振幅
+                amplitude = std::sqrt(out_real * out_real + out_imag * out_imag) * N_inv;
+            }
+
             //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
             void PFFTN::PFFTRun(const double* input, double*& output) {
                 /*
@@ -609,8 +630,55 @@ namespace ptcat {
                 }
             }
 
-            //相位和振幅通常需要全谱信息
-            //幅度可能只需要特定频段的信息, 传输入特定谱段的信息
+            void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, int& size, int n){
+                if (n != -1 && (n > envelope_range_.end || n < envelope_range_.start))
+                    throw std::runtime_error("n out of range");
+                /*
+                 如果多个线程同时调用，使用内存池可能会出现锁竞争导致变慢的情况
+                     常规扫描点数（N < 2048）下，frequency 最多也就 32 KB，直接放在每个线程自己的栈上只要一条移动栈指针的指令，零分配、零锁竞争；只有超出阈值时才回退
+                     调原来的 GenerateFrequency / FreeFrequency 和 MPool
+                 */
+                constexpr int kStackMaxFreq = 4096;
+                alignas(32) double stack_freq[kStackMaxFreq];
+                double* frequency = stack_freq;
+                int fre_len = variable_range_size_ * 2;
+                const bool use_pool_freq = (fre_len > kStackMaxFreq);
+                if (use_pool_freq) {//超过我们设置的阈值才使用内存池
+                    GenerateFrequency(frequency, fre_len);
+                }
+
+                ExecutePFTPlanAVX(input, frequency);
+                const double N_inv = 1.0 / N_;
+
+                //计算振幅和相位
+                if (n != -1){
+                    //n 是实际频点，先减去频谱缓冲的起点。不管是全谱还是非全谱都适用
+                    int fre_idx = 2 * (n - variable_range_.start);
+                    //计算单点的振幅和相位
+                    CalcAmplitudeAndPhase(frequency[fre_idx], frequency[fre_idx + 1], 1.0 / N_, phases[0], amplitudes[0]);
+                    size = 1;
+                }else{//计算整个包络频段
+                    for (int n_i = 0; n_i < envelope_range_size_; n_i++) {
+                        //先把 n_i 转成实际频点，再定位到缓冲区。
+                        int k = envelope_range_.start + n_i;
+                        int fre_idx = 2 * (k - variable_range_.start);
+                        const double& out_real = frequency[fre_idx];
+                        const double& out_imag = frequency[fre_idx + 1];
+                        //计算振幅和相位
+                        CalcAmplitudeAndPhase(out_real, out_imag, N_inv, phases[n_i], amplitudes[n_i]);
+                    }
+                    size = envelope_range_size_;
+                }
+
+                //计算包络
+                ExecutePIFTPlanAVX(output, frequency);
+
+                if (use_pool_freq) {
+                    FreeFrequency(frequency);
+                }
+            }
+
+            //我这里需要看到全部的信息，所以需要全谱信息
             void PFFTN::PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric) {
                 //判断下是不是全谱
                 if (!is_use_full_spectrum_) throw std::runtime_error("please set it to full spectrum during initialization");
@@ -635,10 +703,8 @@ namespace ptcat {
                 for (int n = 0, fre_i = 0; n < N_; n++, fre_i += 2) {
                     const double& out_real = frequency[fre_i];
                     const double& out_imag = frequency[fre_i + 1];
-                    //计算相位
-                    phases[n] = atan2(out_imag, out_real);
-                    //计算振幅
-                    amplitudes[n] = std::sqrt(out_real * out_real + out_imag * out_imag) * N_inv;
+                    //计算振幅和相位
+                    CalcAmplitudeAndPhase(out_real, out_imag, N_inv, phases[n], amplitudes[n]);
                 }
                 //计算包络
                 ExecutePIFTPlanAVX(output, frequency);

@@ -75,6 +75,8 @@ namespace ptcat{
                 GaussianParam gaussian_param_;
 
                 int gaussian_weight_size_ = 0;
+
+                void CalcAmplitudeAndPhase(const double& out_real, const double& out_imag, const double& N_inv, double& phase, double& amplitude);
             public:
                 PFFT();
 
@@ -89,6 +91,10 @@ namespace ptcat{
 
                 //释放资源
                 void PFFTDeInit();
+
+                const Range& GetEnvelopeRange() const { return envelope_range_; }
+
+                int GetEnvelopeRangeSize() const { return envelope_range_size_; }
 
                 void GenerateFrequency(double*& frequency, int& fre_len);
 
@@ -110,6 +116,10 @@ namespace ptcat{
             public:
                 //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
                 void PFFTRun(const double* input, double*& output);
+
+                //使用 SMID 加速后，速度比 未使用 SMID 的 FFTRun 快大概 100 ms
+                //计算出包络，并且获取到某个频点的振幅和相位
+                void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, int& size, int n = -1);
 
                 //获取到振幅， 相位，幅度，这里必须全谱
                 void PFFTRun(const double* input, double*& output, double*& amplitudes,  double*& phases, bool reorder_to_symmetric = false);
